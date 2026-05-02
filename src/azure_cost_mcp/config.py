@@ -38,6 +38,36 @@ class Settings(BaseSettings):
         validation_alias="AZURE_COST_MCP_STREAMABLE_HTTP_PATH",
         description="MCP HTTP 端點路徑。",
     )
+    azure_cost_auth_mode: Literal[
+        "azure-cli",
+        "service-principal",
+        "managed-identity",
+        "default",
+    ] = Field(
+        default="azure-cli",
+        validation_alias="AZURE_COST_AUTH_MODE",
+        description="Azure 驗證模式。",
+    )
+    azure_tenant_id: str | None = Field(
+        default=None,
+        validation_alias="AZURE_TENANT_ID",
+        description="Service Principal 使用的 tenant ID。",
+    )
+    azure_client_id: str | None = Field(
+        default=None,
+        validation_alias="AZURE_CLIENT_ID",
+        description="Service Principal 或 User Assigned Managed Identity 的 client ID。",
+    )
+    azure_client_secret: str | None = Field(
+        default=None,
+        validation_alias="AZURE_CLIENT_SECRET",
+        description="Service Principal 使用的 client secret。",
+    )
+    azure_managed_identity_client_id: str | None = Field(
+        default=None,
+        validation_alias="AZURE_MANAGED_IDENTITY_CLIENT_ID",
+        description="User Assigned Managed Identity 的 client ID。",
+    )
     azure_management_base_url: str = Field(
         default="https://management.azure.com",
         validation_alias="AZURE_MANAGEMENT_BASE_URL",
@@ -68,6 +98,21 @@ class Settings(BaseSettings):
         validation_alias="AZURE_COST_DEPARTMENT_TAG_KEY",
         description="部門成本歸屬使用的 tag key。",
     )
+    m365_cost_management_tenant: str | None = Field(
+        default=None,
+        validation_alias="M365_COST_MANAGEMENT_TENANT",
+        description="M365 成本驗證使用的 tenant ID（目前主要供 operator-run 驗證流程使用）。",
+    )
+    m365_cost_management_scope: str | None = Field(
+        default=None,
+        validation_alias="M365_COST_MANAGEMENT_SCOPE",
+        description="M365 成本驗證使用的 scope（目前主要供 operator-run 驗證流程使用）。",
+    )
+    m365_cost_department_tag_key: str = Field(
+        default="cost_center",
+        validation_alias="M365_COST_DEPARTMENT_TAG_KEY",
+        description="M365 部門成本歸屬使用的 tag key（目前主要供 operator-run 驗證流程使用）。",
+    )
     azure_cost_storage_account_url: str | None = Field(
         default=None,
         validation_alias="AZURE_COST_STORAGE_ACCOUNT_URL",
@@ -82,6 +127,22 @@ class Settings(BaseSettings):
         default="cost-management",
         validation_alias="AZURE_COST_STORAGE_PREFIX",
         description="成本資料 prefix。",
+    )
+    azure_cost_cache_mode: Literal["disabled", "memory", "disk"] = Field(
+        default="disk",
+        validation_alias="AZURE_COST_CACHE_MODE",
+        description="成本資料快取模式。",
+    )
+    azure_cost_cache_dir: str = Field(
+        default=".cache\\azure-cost-mcp",
+        validation_alias="AZURE_COST_CACHE_DIR",
+        description="成本資料 disk cache 目錄。",
+    )
+    azure_cost_cache_ttl_seconds: int = Field(
+        default=900,
+        ge=0,
+        validation_alias="AZURE_COST_CACHE_TTL_SECONDS",
+        description="成本資料快取有效時間（秒）。",
     )
     databricks_mcp_server_url: str | None = Field(
         default=None,
@@ -133,17 +194,24 @@ class Settings(BaseSettings):
         """標準化 Azure 管理平面 URL。"""
         return value.rstrip("/")
 
-    @field_validator("azure_cost_department_tag_key")
+    @field_validator("azure_cost_department_tag_key", "m365_cost_department_tag_key")
     @classmethod
     def validate_department_tag_key(cls, value: str) -> str:
         """驗證部門 tag key。"""
         normalized = value.strip()
         if not normalized:
-            raise ValueError("AZURE_COST_DEPARTMENT_TAG_KEY 不可為空字串。")
+            raise ValueError("部門 tag key 不可為空字串。")
         return normalized
 
     @field_validator(
         "databricks_mcp_server_url",
+        "azure_tenant_id",
+        "azure_client_id",
+        "azure_client_secret",
+        "azure_managed_identity_client_id",
+        "azure_cost_cache_dir",
+        "m365_cost_management_tenant",
+        "m365_cost_management_scope",
         "databricks_mcp_query_tool_name",
         "databricks_mcp_tag_audit_tool_name",
         "databricks_mcp_tag_remediation_tool_name",
@@ -156,6 +224,17 @@ class Settings(BaseSettings):
             return None
         normalized = value.strip()
         return normalized or None
+
+    @field_validator("azure_cost_cache_dir")
+    @classmethod
+    def validate_cache_dir(cls, value: str | None) -> str:
+        """驗證 cache 目錄。"""
+        if value is None:
+            raise ValueError("AZURE_COST_CACHE_DIR 不可為空。")
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("AZURE_COST_CACHE_DIR 不可為空。")
+        return normalized
 
 
 @lru_cache(maxsize=1)
