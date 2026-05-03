@@ -6,8 +6,8 @@ from collections.abc import Mapping
 from typing import Any
 
 import httpx
-from azure.identity.aio import DefaultAzureCredential
 
+from .auth import create_azure_credential
 from .config import Settings
 
 MANAGEMENT_SCOPE = "https://management.azure.com/.default"
@@ -32,7 +32,7 @@ class AzureManagementApiClient:
         json_body: dict[str, Any] | None = None,
         expected_statuses: tuple[int, ...] = (200, 204),
     ) -> dict[str, Any] | None:
-        credential = DefaultAzureCredential()
+        credential = create_azure_credential(self._settings)
         try:
             token = await credential.get_token(MANAGEMENT_SCOPE)
         finally:

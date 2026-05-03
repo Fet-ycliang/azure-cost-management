@@ -98,7 +98,7 @@ Azure Cost Management REST API / Exports / FOCUS
 | `azure_cost_department_cost` | 查詢指定部門成本，或列出部門成本排名 |
 | `azure_cost_cost_trend` | 查詢日 / 月成本趨勢 |
 | `azure_cost_cost_saving_opportunities` | 整合主要成本服務、Savings Plan 與 Reservation 建議 |
-| `azure_cost_databricks_query` | 將自然語言問題或指定 SQL 代理到 `ActualCost` / `AmortizedCost` 對應的 Databricks Genie query tool |
+| `azure_cost_databricks_query` | 將自然語言問題或指定 SQL 代理到 `ActualCost` / `AmortizedCost` 對應的 Databricks Genie query tool，未指定來源時預設走 `AmortizedCost` |
 | `azure_cost_untagged_resources` | 用 Azure Resource Graph 找出缺少必要 tags 的資源 |
 | `azure_cost_list_storage_exports` | 列出 Azure Storage 中的成本匯出檔案 |
 
@@ -118,11 +118,21 @@ Azure Cost Management REST API / Exports / FOCUS
 
 | 變數 | 用途 |
 | --- | --- |
-| `DATABRICKS_MCP_SERVER_URL` | `ActualCost` 或 `AmortizedCost` 對應的 Databricks Genie MCP endpoint |
+| `DATABRICKS_MCP_AMORTIZED_SERVER_URL` | `AmortizedCost` 對應的 Databricks Genie MCP endpoint |
+| `DATABRICKS_MCP_AMORTIZED_QUERY_TOOL_NAME` | `AmortizedCost` 對應的 query tool name |
+| `DATABRICKS_MCP_ACTUAL_SERVER_URL` | `ActualCost` 對應的 Databricks Genie MCP endpoint |
+| `DATABRICKS_MCP_ACTUAL_QUERY_TOOL_NAME` | `ActualCost` 對應的 query tool name |
 | `DATABRICKS_MCP_BEARER_TOKEN` | 遠端 MCP Bearer token（若需要） |
-| `DATABRICKS_MCP_QUERY_TOOL_NAME` | 遠端 `ActualCost` / `AmortizedCost` 查詢 tool 名稱，依目標 Genie space 實際暴露的 tool 填寫 |
+| `DATABRICKS_MCP_SERVER_URL` | legacy fallback endpoint；未設定 source-specific URL 時才回退使用 |
+| `DATABRICKS_MCP_QUERY_TOOL_NAME` | legacy fallback query tool；未設定 source-specific tool name 時才回退使用 |
 
 目前 proxy 會先列出遠端 tools，再確認設定的 tool name 是否存在，避免直接把請求送到不存在的 remote tool。現在這層整合應優先視為 **建在 Databricks Genie 上的 NL-to-SQL 應用**，也就是 `ActualCost` / `AmortizedCost` 這兩個查詢入口；tool name 應以實際 Genie space 暴露的查詢工具為準。
+
+`azure_cost_databricks_query` 的 routing 規則如下：
+
+1. **未指定 `query_source` 時，預設走 `amortized`**
+2. **只有明確指定 `query_source=actual` 時，才切去 `ActualCost`**
+3. **Azure 平台 VM / Storage 的 `ActualCost` 主要保留給 gate / reconciliation 驗證，不是一般月度費用查詢的預設口徑**
 
 若公司網路有 proxy，請把 **實際 Databricks workspace host** 加進 `NO_PROXY` / `no_proxy`。實測像 `adb-*.azuredatabricks.net` 這種 wildcard 不一定會被底層 HTTP client 正確辨識，建議直接填完整 host，例如 `adb-6748704777045471.11.azuredatabricks.net`。
 

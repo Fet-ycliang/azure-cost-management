@@ -57,12 +57,18 @@ class DatabricksMcpClient:
         async with self._session() as session:
             tools = await self._list_tool_models(session)
             available_tools = [tool.name for tool in tools]
-            if tool_name not in available_tools:
+            selected_tool = next((tool for tool in tools if tool.name == tool_name), None)
+            if selected_tool is None:
                 raise DatabricksMcpClientError(
                     f"Databricks MCP server 上找不到 tool '{tool_name}'。可用 tools: "
                     f"{', '.join(available_tools) if available_tools else '(none)'}"
                 )
-            result = await session.call_tool(tool_name, arguments=arguments)
+            normalized_arguments = self._normalize_tool_arguments(
+                tool_name=tool_name,
+                arguments=arguments,
+                tool_model=selected_tool,
+            )
+            result = await session.call_tool(tool_name, arguments=normalized_arguments)
 
         return {
             "tool_name": tool_name,
@@ -109,3 +115,51 @@ class DatabricksMcpClient:
             if not cursor:
                 break
         return tools
+
+    def _normalize_tool_arguments(
+        self,
+        *,
+        tool_name: str,
+        arguments: dict[str, Any],
+        tool_model: Any,
+    ) -> dict[str, Any]:
+        """依遠端 tool schema 正規化輸入參數。"""
+        normalized = {key: value for key, value in arguments.items() if value is not None}
+        input_schema = getattr(tool_model, "inputSchema", None) or {}
+        properties = input_schema.get("properties") or {}
+        required = set(input_schema.get("required") or [])
+
+        alias_pairs = (
+            ("sql", "query"),
+            ("schema_name", "schema"),
+        )
+        for source_key, target_key in alias_pairs:
+            if (
+                target_key in properties
+                and source_key in normalized
+                and target_key not in normalized
+            ):
+                normalized[target_key] = normalized.pop(source_key)
+
+        if properties:
+            normalized = {
+                key: value for key, value in normalized.items() if key in properties
+            }
+
+        missing_required = [key for key in required if key not in normalized]
+        if missing_required:
+            if (
+                "query" in missing_required
+                and "question" in arguments
+                and not any(arguments.get(key) for key in ("sql", "query"))
+            ):
+                raise DatabricksMcpClientError(
+                    f"Databricks MCP tool '{tool_name}' 需要 SQL 參數 'query'；"
+                    "目前設定的工具不支援只傳入自然語言 question。"
+                )
+            raise DatabricksMcpClientError(
+                f"Databricks MCP tool '{tool_name}' 缺少必要參數: "
+                f"{', '.join(sorted(missing_required))}"
+            )
+
+        return normalized

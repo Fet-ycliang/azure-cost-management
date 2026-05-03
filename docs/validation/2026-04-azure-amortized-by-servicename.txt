@@ -1,0 +1,48 @@
+# AmortizedCost by ServiceName - Azure Platform - 2026-04
+Validated at: 2026-05-02 21:50
+REST API cache: .cache/cost-2026-04-azure-amortized-by-servicename.json
+Genie source: system_catalog.system_report.daily_azure_cost_usage_amortized
+
+ServiceName                                      REST_API          Genie         Diff OK
+------------------------------------------------------------------------------------------
+Azure Databricks                               1696981.40     1696981.40         0.00 YES
+Storage                                        1177694.44     1177694.44         0.00 YES
+Virtual Machines                                859165.82      859165.82         0.00 YES
+Azure Synapse Analytics                         174217.20      174217.20         0.00 YES
+Microsoft Defender for Cloud                    172619.23      172619.23         0.00 YES
+Virtual Network                                 100546.00      100546.00         0.00 YES
+Application Gateway                              62545.63       62545.63         0.00 YES
+Bandwidth                                        42295.54       42295.54         0.00 YES
+Load Balancer                                    22375.47       22375.47         0.00 YES
+SQL Database                                     19993.53       19993.53         0.00 YES
+Container Registry                               16849.92       16849.92         0.00 YES
+Azure Cognitive Search                           13693.64       13693.64         0.00 YES
+Redis Cache                                       7390.80        7390.80         0.00 YES
+Event Hubs                                        6127.42        6127.42         0.00 YES
+Log Analytics                                     5050.82        5050.82         0.00 YES
+Azure Kubernetes Service                          2940.92        2940.92         0.00 YES
+Backup                                            2828.96        2828.96         0.00 YES
+Foundry Models                                    2595.13        2595.13         0.00 YES
+Virtual Machines Licenses                         2128.13        2128.13         0.00 YES
+Azure Database for PostgreSQL                     1598.84        1598.84         0.00 YES
+API Management                                    1401.41        1401.41         0.00 YES
+Network Watcher                                    909.01         909.01         0.00 YES
+Azure DNS                                          520.42         520.42         0.00 YES
+Azure App Service                                  383.76         383.76         0.00 YES
+Functions                                          317.64         317.64         0.00 YES
+Virtual Machine Licenses                           312.34         312.34         0.00 YES
+Automation                                         151.30         151.30         0.00 YES
+Foundry Tools                                       77.41          77.41         0.00 YES
+NAT Gateway                                         71.64          71.64         0.00 YES
+Azure Data Factory v2                               29.10          29.10         0.00 YES
+Azure Monitor                                       19.79          19.79         0.00 YES
+Event Grid                                           7.29           7.29         0.00 YES
+Key Vault                                            0.93           0.93         0.00 YES
+Logic Apps                                           0.46           0.46         0.00 YES
+Azure Bot Service                                    0.04           0.04         0.00 YES
+Service Bus                                          0.00           0.00         0.00 YES
+Insight and Analytics                                0.00           0.00         0.00 YES
+------------------------------------------------------------------------------------------
+TOTAL                                          4393841.39     4393841.38         0.01
+
+Match: 37/37 | API_ONLY: 0 | GENIE_ONLY: 0 | Status: ALL PASS

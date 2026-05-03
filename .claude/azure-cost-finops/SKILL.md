@@ -80,6 +80,8 @@ description: >
 - **不要假設 Portal 看得到的 view 一定存在於目前 subscription-scope 的 Views API**，registry 需明確保存 `view_scope_type`、`view_scope_id`、`tenant_id`
 - **查詢 Azure Databricks 成本時，預設走 `AmortizedCost` / `*_amortized*`**；Databricks 常走預繳 / reservation-backed 口徑，`ActualCost` / `*_actual*` 可能為 0 或不具代表性
 - **若使用者只問「Databricks 費用」但未指定成本口徑**，預設回 amortized 數字，並清楚標示為攤銷 / 估列口徑
+- **若使用者以「`(Azure平台) 服務名稱 前一個月的費用`」這類月度服務費用語法發問，且未明確指定成本口徑**，一律預設走 `AmortizedCost` Genie
+- **Azure 平台 VM / Storage 的 `ActualCost` 只作為月度 reconciliation / gate status 驗證用途**；gate 通過後，回到一般查詢情境時，未指定口徑仍一律走 `AmortizedCost`
 - **TagKey grouping 的回應 shape 是 `TagKey` + `TagValue`**，不是直接回 `Purpose` 或 `cost_center` 欄位
 - **`ResourceGroupName` 可能為空**，shared/platform charge 需回退到 `ServiceName`、tag、`PricingModel`、`BenefitName`
 - **不要把大區間回補做成「每月一支 API」**；能一次拉整段月份，就不要拆成逐月 request
@@ -241,6 +243,22 @@ description: >
   - 輸入驗證
   - dry-run / apply 切換條件
   - 稽核與錯誤回報
+
+## Genie Space 欄位注意事項
+
+Genie space 底層使用預聚合 view（`daily_azure_cost_usage_actual_view` / `_amortized_view`），**欄位為 snake_case**，與 REST API 欄位名稱不同：
+
+| REST API 欄位 | Genie View 欄位 |
+|---|---|
+| `CostInBillingCurrency` | `total_cost` |
+| `Tags['Purpose']` | `purpose`（已小寫） |
+| `ResourceGroupName` | `resource_group_name` |
+| `ServiceName` / `MeterCategory` | `service_name` |
+| `PricingModel` | `pricing_model` |
+
+**注意**：本 skill 其他段落中涉及 `PricingModel`、`ServiceName`、`ResourceGroupName` 的規則，是 **REST API context**，在 REST API 查詢中仍然正確。若透過 Genie 查詢，需改用上表的 view 欄位名稱。
+
+詳細欄位對照表見 `.cache/views-mapping/04-db-schema-mapping.md`。
 
 ## 搭配使用的 skills
 

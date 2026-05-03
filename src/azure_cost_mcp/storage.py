@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
-from azure.identity.aio import DefaultAzureCredential
 from azure.storage.blob.aio import BlobServiceClient
 
+from .auth import create_azure_credential
 from .config import Settings
 
 
@@ -36,7 +36,7 @@ class StorageExportClient:
                 "AZURE_COST_STORAGE_CONTAINER。"
             )
 
-        credential = DefaultAzureCredential()
+        credential = create_azure_credential(self._settings)
         service_client: BlobServiceClient | None = None
         try:
             service_client = BlobServiceClient(account_url=account_url, credential=credential)

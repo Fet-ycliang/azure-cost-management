@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
+import httpx
+from azure.core.exceptions import AzureError
 from mcp.server.fastmcp import FastMCP
 
 from .azure_management import AzureManagementApiError
@@ -14,14 +16,14 @@ from .cost_management import CostManagementClient
 from .databricks_mcp import DatabricksMcpClient, DatabricksMcpClientError
 from .formatting import to_response
 from .models import (
+    ConnectionValidationParams,
     CostTrendParams,
     DatabricksQueryParams,
+    DatabricksQuerySource,
     DepartmentCostParams,
     ResponseOptions,
     SavingsRecommendationParams,
     StorageExportsParams,
-    TagAuditParams,
-    TagRemediationParams,
     TrendGranularity,
     UntaggedResourcesParams,
 )
@@ -40,19 +42,18 @@ USE_CASES = [
     "查詢節費方向與優化建議",
     "查詢費用趨勢",
     "找出未打標記的服務或資源",
-    "透過 Databricks MCP server 修正 tag 內容",
+    "透過 Databricks MCP server 做成本查詢與 SQL 分析",
 ]
 
 IMPLEMENTED_TOOLS = [
     "azure_cost_get_bootstrap_status",
+    "azure_cost_validate_connections",
     "azure_cost_get_planned_capabilities",
     "azure_cost_department_cost",
     "azure_cost_cost_trend",
     "azure_cost_cost_saving_opportunities",
     "azure_cost_databricks_query",
     "azure_cost_untagged_resources",
-    "azure_cost_tag_audit",
-    "azure_cost_tag_remediation",
     "azure_cost_list_storage_exports",
 ]
 
@@ -254,12 +255,327 @@ def _normalize_reservation_recommendations(
     return normalized[:top]
 
 
+def _build_connection_check(
+    name: str,
+    *,
+    status: str,
+    configured: bool,
+    detail: dict[str, Any] | None = None,
+    error: str | None = None,
+) -> dict[str, Any]:
+    """建立單一連線檢查結果。"""
+    payload: dict[str, Any] = {
+        "name": name,
+        "status": status,
+        "configured": configured,
+    }
+    if detail:
+        payload["detail"] = detail
+    if error:
+        payload["error"] = error
+    return payload
+
+
+def _summarize_connection_checks(results: list[dict[str, Any]]) -> dict[str, int]:
+    """彙整連線檢查結果。"""
+    status_counts = Counter(result["status"] for result in results)
+    return {
+        "total": len(results),
+        "ok": status_counts.get("ok", 0),
+        "failed": status_counts.get("failed", 0),
+        "skipped": status_counts.get("skipped", 0),
+    }
+
+
+def _build_databricks_query_arguments(params: DatabricksQueryParams) -> dict[str, Any]:
+    """將本地 Databricks query 參數轉成遠端 tool 輸入。"""
+    arguments: dict[str, Any] = {}
+    if params.question is not None:
+        arguments["question"] = params.question
+    if params.sql is not None:
+        arguments["sql"] = params.sql
+    if params.catalog is not None:
+        arguments["catalog"] = params.catalog
+    if params.schema_name is not None:
+        arguments["schema_name"] = params.schema_name
+    if params.arguments:
+        arguments.update(params.arguments)
+    return arguments
+
+
+def _resolve_databricks_query_target(
+    settings: Settings,
+    source: DatabricksQuerySource,
+) -> dict[str, Any]:
+    """解析 Databricks query 應使用的 Genie source 設定。"""
+    if source is DatabricksQuerySource.ACTUAL:
+        display_name = "ActualCost"
+        server_env_var_name = (
+            "DATABRICKS_MCP_ACTUAL_SERVER_URL 或 DATABRICKS_MCP_SERVER_URL"
+        )
+        tool_env_var_name = (
+            "DATABRICKS_MCP_ACTUAL_QUERY_TOOL_NAME 或 DATABRICKS_MCP_QUERY_TOOL_NAME"
+        )
+    else:
+        display_name = "AmortizedCost"
+        server_env_var_name = (
+            "DATABRICKS_MCP_AMORTIZED_SERVER_URL 或 DATABRICKS_MCP_SERVER_URL"
+        )
+        tool_env_var_name = (
+            "DATABRICKS_MCP_AMORTIZED_QUERY_TOOL_NAME 或 DATABRICKS_MCP_QUERY_TOOL_NAME"
+        )
+
+    server_url, tool_name = settings.resolve_databricks_query_target(source.value)
+    return {
+        "query_source": source.value,
+        "display_name": display_name,
+        "server_url": server_url,
+        "server_env_var_name": server_env_var_name,
+        "tool_name": tool_name,
+        "tool_env_var_name": tool_env_var_name,
+        "configured": bool(server_url and tool_name),
+        "settings": settings.model_copy(
+            update={
+                "databricks_mcp_server_url": server_url,
+                "databricks_mcp_query_tool_name": tool_name,
+            }
+        ),
+    }
+
+
+def _ensure_databricks_query_target_configured(target: dict[str, Any]) -> None:
+    """確認 Databricks query target 已完整設定。"""
+    missing = []
+    if not target["server_url"]:
+        missing.append(target["server_env_var_name"])
+    if not target["tool_name"]:
+        missing.append(target["tool_env_var_name"])
+    if missing:
+        raise ValueError(
+            f"{target['display_name']} Databricks query target 尚未完整設定："
+            + ", ".join(missing)
+        )
+
+
+def _format_check_error(error: Exception) -> str:
+    """將例外轉成可讀訊息。"""
+    current: BaseException = error
+    seen: set[int] = set()
+
+    while True:
+        marker = id(current)
+        if marker in seen:
+            break
+        seen.add(marker)
+
+        if isinstance(current, BaseExceptionGroup) and current.exceptions:
+            current = current.exceptions[0]
+            continue
+
+        next_error = current.__cause__
+        if next_error is None and not current.__suppress_context__:
+            next_error = current.__context__
+        if next_error is None:
+            break
+        current = next_error
+
+    return f"{type(current).__name__}: {current}"
+
+
+async def _run_connection_checks(
+    *,
+    settings: Settings,
+    cost_client: CostManagementClient,
+    resource_graph_client: ResourceGraphClient,
+    databricks_client: DatabricksMcpClient,
+    storage_client: StorageExportClient,
+    subscriptions: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """依序驗證成本、治理、儲存與 Databricks 連線。"""
+    results: list[dict[str, Any]] = []
+    today = date.today()
+
+    if settings.azure_cost_management_scope:
+        try:
+            await cost_client.query_usage(
+                start_date=today,
+                end_date=today,
+                granularity="None",
+            )
+            results.append(
+                _build_connection_check(
+                    "cost_management",
+                    status="ok",
+                    configured=True,
+                    detail={
+                        "scope": settings.azure_cost_management_scope,
+                        "api_version": settings.azure_cost_management_api_version,
+                    },
+                )
+            )
+        except (
+            ValueError,
+            AzureError,
+            AzureManagementApiError,
+            httpx.HTTPError,
+            Exception,
+        ) as error:
+            results.append(
+                _build_connection_check(
+                    "cost_management",
+                    status="failed",
+                    configured=True,
+                    detail={"scope": settings.azure_cost_management_scope},
+                    error=_format_check_error(error),
+                )
+            )
+    else:
+        results.append(
+            _build_connection_check(
+                "cost_management",
+                status="skipped",
+                configured=False,
+                error="AZURE_COST_MANAGEMENT_SCOPE 尚未設定。",
+            )
+        )
+
+    resolved_subscriptions = subscriptions or resource_graph_client.default_subscriptions()
+    if resolved_subscriptions:
+        try:
+            resource_graph_result = await resource_graph_client.query_resources(
+                "Resources | take 1",
+                subscriptions=resolved_subscriptions,
+                top=1,
+            )
+            sample_count = len(resource_graph_result.get("data", []))
+            results.append(
+                _build_connection_check(
+                    "resource_graph",
+                    status="ok",
+                    configured=True,
+                    detail={
+                        "subscriptions": resolved_subscriptions,
+                        "sample_count": sample_count,
+                    },
+                )
+            )
+        except (
+            ValueError,
+            AzureError,
+            AzureManagementApiError,
+            httpx.HTTPError,
+            Exception,
+        ) as error:
+            results.append(
+                _build_connection_check(
+                    "resource_graph",
+                    status="failed",
+                    configured=True,
+                    detail={"subscriptions": resolved_subscriptions},
+                    error=_format_check_error(error),
+                )
+            )
+    else:
+        results.append(
+            _build_connection_check(
+                "resource_graph",
+                status="skipped",
+                configured=False,
+                error="缺少可用的 subscription，無法驗證 Azure Resource Graph。",
+            )
+        )
+
+    if settings.azure_cost_storage_account_url and settings.azure_cost_storage_container:
+        try:
+            blobs = await storage_client.list_cost_blobs(max_results=1)
+            results.append(
+                _build_connection_check(
+                    "storage",
+                    status="ok",
+                    configured=True,
+                    detail={
+                        "account_url": settings.azure_cost_storage_account_url,
+                        "container": settings.azure_cost_storage_container,
+                        "sample_blob_count": len(blobs),
+                    },
+                )
+            )
+        except (AzureError, StorageClientError, Exception) as error:
+            results.append(
+                _build_connection_check(
+                    "storage",
+                    status="failed",
+                    configured=True,
+                    detail={
+                        "account_url": settings.azure_cost_storage_account_url,
+                        "container": settings.azure_cost_storage_container,
+                    },
+                    error=_format_check_error(error),
+                )
+            )
+    else:
+        results.append(
+            _build_connection_check(
+                "storage",
+                status="skipped",
+                configured=False,
+                error="Azure Storage 連線設定未完整提供。",
+            )
+        )
+
+    if databricks_client.is_configured():
+        try:
+            tools = await databricks_client.list_tools()
+            results.append(
+                _build_connection_check(
+                    "databricks_mcp",
+                    status="ok",
+                    configured=True,
+                    detail={
+                        "server_url": settings.databricks_mcp_server_url,
+                        "tool_count": len(tools),
+                    },
+                )
+            )
+        except (DatabricksMcpClientError, httpx.HTTPError, Exception) as error:
+            results.append(
+                _build_connection_check(
+                    "databricks_mcp",
+                    status="failed",
+                    configured=True,
+                    detail={"server_url": settings.databricks_mcp_server_url},
+                    error=_format_check_error(error),
+                )
+            )
+    else:
+        results.append(
+            _build_connection_check(
+                "databricks_mcp",
+                status="skipped",
+                configured=False,
+                error="DATABRICKS_MCP_SERVER_URL 尚未設定。",
+            )
+        )
+
+    return results
+
+
 def create_mcp_server(settings: Settings | None = None) -> FastMCP:
     """建立 Azure Cost MCP server。"""
     current_settings = settings or get_settings()
     cost_client = CostManagementClient(current_settings)
     resource_graph_client = ResourceGraphClient(current_settings)
-    databricks_client = DatabricksMcpClient(current_settings)
+    amortized_databricks_query_target = _resolve_databricks_query_target(
+        current_settings,
+        DatabricksQuerySource.AMORTIZED,
+    )
+    actual_databricks_query_target = _resolve_databricks_query_target(
+        current_settings,
+        DatabricksQuerySource.ACTUAL,
+    )
+    databricks_client = DatabricksMcpClient(
+        amortized_databricks_query_target["settings"]
+    )
     storage_client = StorageExportClient(current_settings)
 
     mcp = FastMCP(
@@ -273,6 +589,38 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
         streamable_http_path=current_settings.mcp_streamable_http_path,
         log_level="INFO",
     )
+
+    @mcp.tool(
+        name="azure_cost_validate_connections",
+        annotations={
+            "title": "驗證資料來源連線",
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "idempotentHint": True,
+            "openWorldHint": False,
+        },
+    )
+    async def azure_cost_validate_connections(params: ConnectionValidationParams) -> str:
+        """驗證 Azure Cost MCP 所需的外部連線。"""
+
+        checks = await _run_connection_checks(
+            settings=current_settings,
+            cost_client=cost_client,
+            resource_graph_client=resource_graph_client,
+            databricks_client=databricks_client,
+            storage_client=storage_client,
+            subscriptions=params.subscriptions,
+        )
+        payload = {
+            "test_sequence": [
+                "connection",
+                "functional",
+                "end_to_end",
+            ],
+            "summary": _summarize_connection_checks(checks),
+            "checks": checks,
+        }
+        return to_response("Azure 外部連線驗證", payload, params.response_format)
 
     @mcp.tool(
         name="azure_cost_get_bootstrap_status",
@@ -302,18 +650,18 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
                     and current_settings.azure_cost_storage_container
                 ),
                 "databricks_mcp_server_configured": bool(
-                    current_settings.databricks_mcp_server_url
+                    amortized_databricks_query_target["server_url"]
                 ),
                 "databricks_mcp_query_tool_configured": bool(
-                    current_settings.databricks_mcp_query_tool_name
+                    amortized_databricks_query_target["tool_name"]
                 ),
-                "databricks_mcp_tag_audit_tool_configured": bool(
-                    current_settings.databricks_mcp_tag_audit_tool_name
+                "databricks_mcp_default_query_source": "amortized",
+                "databricks_mcp_amortized_query_configured": (
+                    amortized_databricks_query_target["configured"]
                 ),
-                "databricks_mcp_tag_remediation_tool_configured": bool(
-                    current_settings.databricks_mcp_tag_remediation_tool_name
+                "databricks_mcp_actual_query_configured": (
+                    actual_databricks_query_target["configured"]
                 ),
-                "tag_direct_apply_enabled": current_settings.azure_cost_tag_apply_enabled,
             },
             "next_focus": PROJECT_PRIORITIES,
         }
@@ -346,10 +694,11 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
                 "APIM 選型",
                 "Lakebase / SQL Server / Cosmos DB / Azure AI Search / pgvector 評估",
                 "Storage LRS / ZRS 與 Hot / Cool / Cold 配置建議",
+                "multi-tenant auth 與 subscription-to-tenant 對應策略",
             ],
             "tag_strategy": {
-                "default_mode": "先產生修正建議",
-                "direct_apply_mode": "需明確指定且受設定控制",
+                "status": "另案規劃",
+                "current_scope": "目前只保留未標記資源偵測，不提供維護功能",
             },
         }
         return to_response("Azure Cost MCP 規劃能力", payload, params.response_format)
@@ -649,21 +998,25 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
     async def azure_cost_databricks_query(params: DatabricksQueryParams) -> str:
         """將自然語言或 SQL 原樣代理到 Databricks MCP query tool。"""
 
-        remote_result = await databricks_client.call_configured_tool(
-            tool_name=current_settings.databricks_mcp_query_tool_name,
-            env_var_name="DATABRICKS_MCP_QUERY_TOOL_NAME",
+        query_target = (
+            actual_databricks_query_target
+            if params.query_source is DatabricksQuerySource.ACTUAL
+            else amortized_databricks_query_target
+        )
+        _ensure_databricks_query_target_configured(query_target)
+        query_client = DatabricksMcpClient(query_target["settings"])
+
+        remote_result = await query_client.call_configured_tool(
+            tool_name=query_target["tool_name"],
+            env_var_name=query_target["tool_env_var_name"],
             purpose="databricks-query",
-            arguments={
-                "question": params.question,
-                "sql": params.sql,
-                "catalog": params.catalog,
-                "schema_name": params.schema_name,
-                "arguments": params.arguments,
-            },
+            arguments=_build_databricks_query_arguments(params),
         )
         payload = {
             "mode": "databricks-proxy",
-            "remote_server": current_settings.databricks_mcp_server_url,
+            "query_source": query_target["query_source"],
+            "remote_server": query_target["server_url"],
+            "remote_tool_name": query_target["tool_name"],
             "result": remote_result,
         }
         return to_response("Azure Databricks 查詢代理", payload, params.response_format)
@@ -697,99 +1050,6 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
             "source": "Azure Resource Graph",
         }
         return to_response("Azure 未標記資源", payload, params.response_format)
-
-    @mcp.tool(
-        name="azure_cost_tag_audit",
-        annotations={
-            "title": "檢查 tag 規則",
-            "readOnlyHint": True,
-            "destructiveHint": False,
-            "idempotentHint": True,
-            "openWorldHint": True,
-        },
-    )
-    async def azure_cost_tag_audit(params: TagAuditParams) -> str:
-        """優先透過 Databricks MCP server 執行 tag audit，否則回退到 Resource Graph。"""
-
-        if params.use_databricks and databricks_client.is_configured():
-            try:
-                remote_result = await databricks_client.call_configured_tool(
-                    tool_name=current_settings.databricks_mcp_tag_audit_tool_name,
-                    env_var_name="DATABRICKS_MCP_TAG_AUDIT_TOOL_NAME",
-                    purpose="tag-audit",
-                    arguments={
-                        "required_tag_keys": params.required_tag_keys,
-                        "resource_ids": params.resource_ids,
-                        "max_results": params.max_results,
-                    },
-                )
-                payload = {
-                    "mode": "databricks-proxy",
-                    "remote_server": current_settings.databricks_mcp_server_url,
-                    "result": remote_result,
-                }
-                return to_response("Azure tag audit", payload, params.response_format)
-            except DatabricksMcpClientError as error:
-                fallback_reason = str(error)
-        else:
-            fallback_reason = "Databricks MCP server 未設定，改用 Azure Resource Graph 執行本地 audit。"
-
-        raw_resources = await resource_graph_client.find_resources_missing_tags(
-            required_tag_keys=params.required_tag_keys,
-            subscriptions=params.subscriptions,
-            resource_ids=params.resource_ids,
-            max_results=params.max_results,
-        )
-        resources = _annotate_missing_tags(raw_resources, params.required_tag_keys)
-        payload = {
-            "mode": "resource-graph-fallback",
-            "fallback_reason": fallback_reason,
-            "required_tag_keys": params.required_tag_keys,
-            "summary": _summarize_missing_tags(resources),
-            "resources": resources,
-            "source": "Azure Resource Graph",
-        }
-        return to_response("Azure tag audit", payload, params.response_format)
-
-    @mcp.tool(
-        name="azure_cost_tag_remediation",
-        annotations={
-            "title": "修正 tag",
-            "readOnlyHint": False,
-            "destructiveHint": True,
-            "idempotentHint": False,
-            "openWorldHint": True,
-        },
-    )
-    async def azure_cost_tag_remediation(params: TagRemediationParams) -> str:
-        """透過 Databricks MCP server 執行 tag 修正。"""
-
-        if params.apply and not current_settings.azure_cost_tag_apply_enabled:
-            raise ValueError(
-                "已要求直接 apply，但目前 AZURE_COST_TAG_APPLY_ENABLED=false。"
-                "請先確認權限與治理流程後再開啟。"
-            )
-
-        remote_result = await databricks_client.call_configured_tool(
-            tool_name=current_settings.databricks_mcp_tag_remediation_tool_name,
-            env_var_name="DATABRICKS_MCP_TAG_REMEDIATION_TOOL_NAME",
-            purpose="tag-remediation",
-            arguments={
-                "apply": params.apply,
-                "required_tag_keys": params.required_tag_keys,
-                "resource_ids": params.resource_ids,
-                "proposed_tags": params.proposed_tags,
-                "rationale": params.rationale,
-            },
-        )
-        payload = {
-            "mode": "databricks-proxy",
-            "apply": params.apply,
-            "tag_direct_apply_enabled": current_settings.azure_cost_tag_apply_enabled,
-            "remote_server": current_settings.databricks_mcp_server_url,
-            "result": remote_result,
-        }
-        return to_response("Azure tag remediation", payload, params.response_format)
 
     @mcp.tool(
         name="azure_cost_list_storage_exports",

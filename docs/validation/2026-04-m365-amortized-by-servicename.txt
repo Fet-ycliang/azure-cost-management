@@ -1,0 +1,37 @@
+# AmortizedCost by ServiceName - M365 Platform - 2026-04
+Validated at: 2026-05-02
+REST API cache: .cache/cost-2026-04-m365-amortized-by-servicename.json
+Genie source: rag_develop_catalog.system_report.daily_azure_cost_usage_amortized | Datasource=m365
+
+ServiceName                                      REST_API          Genie         Diff OK
+------------------------------------------------------------------------------------------
+Azure Databricks                                149418.27      149418.27         0.00 YES
+Foundry Models                                   11417.73       11417.73         0.00 YES
+Foundry Tools                                     8942.74        8942.74         0.00 YES
+Virtual Network                                   7998.41        7998.41         0.00 YES
+Azure App Service                                 5837.34        5837.34         0.00 YES
+Azure Cognitive Search                            5501.04        5501.04         0.00 YES
+Azure Container Apps                              3329.82        3329.82         0.00 YES
+SaaS                                              2566.14        2566.14         0.00 YES
+API Management                                    1150.32        1150.32         0.00 YES
+Storage                                           1051.76        1051.76         0.00 YES
+Load Balancer                                      940.42         940.42         0.00 YES
+Container Registry                                 807.78         807.78         0.00 YES
+Virtual Machines                                   686.75         686.75         0.00 YES
+Microsoft Fabric                                   639.64         639.64         0.00 YES
+Azure DNS                                          386.44         386.44         0.00 YES
+SQL Database                                       192.86         192.86         0.00 YES
+Azure Monitor                                       78.66          78.66         0.00 YES
+NAT Gateway                                          7.81           7.81         0.00 YES
+Azure Bot Service                                    1.97           1.97         0.00 YES
+Automation                                           1.73           1.73         0.00 YES
+Key Vault                                            0.10           0.10         0.00 YES
+Container Instances                                  0.05           0.05         0.00 YES
+Bandwidth                                            0.03           0.03         0.00 YES
+Functions                                            0.00           0.00         0.00 YES
+Log Analytics                                        0.00           0.00         0.00 YES
+Unassigned                                           0.00           0.00         0.00 YES
+------------------------------------------------------------------------------------------
+TOTAL                                           200957.81      200957.81         0.00
+
+Match: 26/26 | API_ONLY: 0 | GENIE_ONLY: 0 | Status: ALL PASS
