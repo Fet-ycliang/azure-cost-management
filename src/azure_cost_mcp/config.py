@@ -159,10 +159,30 @@ class Settings(BaseSettings):
         validation_alias="DATABRICKS_MCP_TIMEOUT_SECONDS",
         description="Databricks MCP server 呼叫逾時秒數。",
     )
+    databricks_mcp_amortized_server_url: str | None = Field(
+        default=None,
+        validation_alias="DATABRICKS_MCP_AMORTIZED_SERVER_URL",
+        description="AmortizedCost Genie 對應的 Databricks MCP server URL。",
+    )
+    databricks_mcp_actual_server_url: str | None = Field(
+        default=None,
+        validation_alias="DATABRICKS_MCP_ACTUAL_SERVER_URL",
+        description="ActualCost Genie 對應的 Databricks MCP server URL。",
+    )
+    databricks_mcp_amortized_query_tool_name: str | None = Field(
+        default=None,
+        validation_alias="DATABRICKS_MCP_AMORTIZED_QUERY_TOOL_NAME",
+        description="AmortizedCost Genie 查詢工具名稱。",
+    )
+    databricks_mcp_actual_query_tool_name: str | None = Field(
+        default=None,
+        validation_alias="DATABRICKS_MCP_ACTUAL_QUERY_TOOL_NAME",
+        description="ActualCost Genie 查詢工具名稱。",
+    )
     databricks_mcp_query_tool_name: str | None = Field(
         default=None,
         validation_alias="DATABRICKS_MCP_QUERY_TOOL_NAME",
-        description="Databricks MCP 查詢工具名稱。",
+        description="Databricks MCP 查詢工具名稱（legacy fallback）。",
     )
     databricks_mcp_tag_audit_tool_name: str | None = Field(
         default=None,
@@ -205,6 +225,8 @@ class Settings(BaseSettings):
 
     @field_validator(
         "databricks_mcp_server_url",
+        "databricks_mcp_amortized_server_url",
+        "databricks_mcp_actual_server_url",
         "azure_tenant_id",
         "azure_client_id",
         "azure_client_secret",
@@ -212,6 +234,8 @@ class Settings(BaseSettings):
         "azure_cost_cache_dir",
         "m365_cost_management_tenant",
         "m365_cost_management_scope",
+        "databricks_mcp_amortized_query_tool_name",
+        "databricks_mcp_actual_query_tool_name",
         "databricks_mcp_query_tool_name",
         "databricks_mcp_tag_audit_tool_name",
         "databricks_mcp_tag_remediation_tool_name",
@@ -235,6 +259,23 @@ class Settings(BaseSettings):
         if not normalized:
             raise ValueError("AZURE_COST_CACHE_DIR 不可為空。")
         return normalized
+
+    def resolve_databricks_query_target(
+        self,
+        source: Literal["amortized", "actual"],
+    ) -> tuple[str | None, str | None]:
+        """依來源類型解析 Databricks query target。"""
+        if source == "actual":
+            return (
+                self.databricks_mcp_actual_server_url or self.databricks_mcp_server_url,
+                self.databricks_mcp_actual_query_tool_name
+                or self.databricks_mcp_query_tool_name,
+            )
+        return (
+            self.databricks_mcp_amortized_server_url or self.databricks_mcp_server_url,
+            self.databricks_mcp_amortized_query_tool_name
+            or self.databricks_mcp_query_tool_name,
+        )
 
 
 @lru_cache(maxsize=1)

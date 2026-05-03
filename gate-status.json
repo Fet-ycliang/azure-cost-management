@@ -1,0 +1,67 @@
+{
+  "2026-04": {
+    "validated_at": "2026-05-02",
+    "overall": "PASS",
+    "gates": {
+      "amortized_databricks_azure": {
+        "description": "Azure 平台 Databricks AmortizedCost 逐日比對",
+        "status": "PASS",
+        "rest_api_total_twd": 1696981.40,
+        "genie_total_twd": 1696981.50,
+        "days_passed": 30,
+        "days_total": 30,
+        "report": "docs/validation/2026-04-azure-amortized-databricks-daily.txt",
+        "note": "差 0.1 TWD 為四捨五入，在容許範圍內"
+      },
+      "amortized_by_servicename_azure": {
+        "description": "Azure 平台 AmortizedCost 依 ServiceName 月份總額比對（37 個服務）",
+        "status": "PASS",
+        "rest_api_total_twd": 4393841.39,
+        "genie_total_twd": 4393841.38,
+        "services_passed": 37,
+        "services_total": 37,
+        "report": "docs/validation/2026-04-azure-amortized-by-servicename.txt",
+        "note": "差 0.01 TWD 為浮點數截斷，全服務 0.00 差異"
+      },
+      "actual_vm_storage_azure": {
+        "description": "Azure 平台 VM+Storage ActualCost 逐日比對",
+        "status": "PASS",
+        "rest_api_total_twd": 1779333.95,
+        "genie_total_twd": 1779333.95,
+        "days_passed": 30,
+        "days_total": 30,
+        "report": "docs/validation/2026-04-azure-actual-vm-storage-daily.txt"
+      },
+      "amortized_databricks_m365": {
+        "description": "M365 平台 Databricks AmortizedCost 逐日比對",
+        "status": "PASS",
+        "rest_api_total_twd": 149418.27,
+        "genie_total_twd": 149418.26,
+        "days_passed": 30,
+        "days_total": 30,
+        "report": "docs/validation/2026-04-m365-amortized-databricks-daily.txt",
+        "note": "Genie 需加 Datasource='m365' 過濾"
+      },
+      "amortized_by_servicename_m365": {
+        "description": "M365 平台 AmortizedCost 依 ServiceName 月份總額比對（26 個服務）",
+        "status": "PASS",
+        "rest_api_total_twd": 200957.81,
+        "genie_total_twd": 200957.81,
+        "services_passed": 26,
+        "services_total": 26,
+        "report": "docs/validation/2026-04-m365-amortized-by-servicename.txt",
+        "note": "Genie 需加 Datasource='m365' 過濾；全服務 0.00 差異"
+      },
+      "actual_vm_storage_m365": {
+        "description": "M365 平台 VM+Storage ActualCost 逐日比對",
+        "status": "PASS",
+        "rest_api_total_twd": 1738.51,
+        "genie_total_twd": 1738.52,
+        "days_passed": 30,
+        "days_total": 30,
+        "report": "docs/validation/2026-04-m365-actual-vm-storage-daily.txt",
+        "note": "Genie 需加 Datasource='m365' 過濾；rag_develop_catalog 含 fabric 訂閱須排除"
+      }
+    }
+  }
+}

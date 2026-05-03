@@ -1,16 +1,23 @@
 {
   "mcpServers": {
+	"ActualCost": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "mcp-remote", "https://adb-2654999172504234.14.azuredatabricks.net/api/2.0/mcp/genie/01f145606c591a8b881c05774b621e71", "--header", "Authorization:Bearer %ANTHROPIC_AUTH_TOKEN%"]
+    },
+	"AmortizedCost": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "mcp-remote", "https://adb-2654999172504234.14.azuredatabricks.net/api/2.0/mcp/genie/01f14564c24f1448904bbd0dcd66d4ae", "--header", "Authorization:Bearer %ANTHROPIC_AUTH_TOKEN%"]
+    },
     "azure": {
-      "type": "local",
+      "type": "stdio",
       "command": "npx",
       "args": [
         "-y",
         "@azure/mcp@latest",
         "server",
         "start"
-      ],
-      "tools": [
-        "*"
       ]
     }
   }

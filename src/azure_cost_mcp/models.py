@@ -31,6 +31,15 @@ class ResponseOptions(BaseModel):
     )
 
 
+class ConnectionValidationParams(ResponseOptions):
+    """連線驗證工具輸入。"""
+
+    subscriptions: list[str] | None = Field(
+        default=None,
+        description="Resource Graph 驗證時使用的 subscription IDs；若省略則由設定推導。",
+    )
+
+
 class DateRangeOptions(BaseModel):
     """共用日期區間輸入。"""
 
@@ -88,6 +97,13 @@ class TrendGranularity(str, Enum):
 
     DAILY = "Daily"
     MONTHLY = "Monthly"
+
+
+class DatabricksQuerySource(str, Enum):
+    """Databricks 查詢來源。"""
+
+    AMORTIZED = "amortized"
+    ACTUAL = "actual"
 
 
 class RecommendationLookBackPeriod(str, Enum):
@@ -259,6 +275,10 @@ class TagAuditParams(ResponseOptions, RequiredTagsOptions):
 class DatabricksQueryParams(ResponseOptions):
     """Databricks MCP 查詢代理輸入。"""
 
+    query_source: DatabricksQuerySource = Field(
+        default=DatabricksQuerySource.AMORTIZED,
+        description="查詢來源；未指定時預設走 amortized。",
+    )
     question: str | None = Field(
         default=None,
         description="要交給 Databricks MCP tool 的自然語言問題。",
