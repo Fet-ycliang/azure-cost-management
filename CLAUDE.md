@@ -62,6 +62,14 @@
 - Cost Management API 速率限制 **4 req/min per scope**；呼叫前確認是否已有 cache，遇 429 時讀 `Retry-After` header，不可全局重試。
 - 查詢 **Azure Databricks 成本** 時，預設使用 **`AmortizedCost`**；Databricks 常走預繳 / reservation-backed 口徑，**`ActualCost` 可能為 0 或不具代表性**。
 
+## 計費口徑原則
+
+- **預設口徑：AmortizedCost**。除非特別說明，所有專案費用查詢一律用 AmortizedCost（攤提用）。
+- **例外：Azure 平台整體服務報表**（第一份月報）使用混合口徑：
+  - Azure Databricks → AmortizedCost
+  - 其他所有服務 → ActualCost
+- Databricks 走預繳 / Reservation，ActualCost 可能為 0，必用 AmortizedCost。
+
 ## Genie 查詢注意事項
 
 - Genie 是 **NL-to-SQL**：直接用自然語言問，Genie 自動生成 SQL；問法不需寫 SQL 語法。
