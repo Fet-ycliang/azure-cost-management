@@ -258,7 +258,7 @@ Genie space 底層使用預聚合 view（`daily_azure_cost_usage_actual_view` / 
 
 **注意**：本 skill 其他段落中涉及 `PricingModel`、`ServiceName`、`ResourceGroupName` 的規則，是 **REST API context**，在 REST API 查詢中仍然正確。若透過 Genie 查詢，需改用上表的 view 欄位名稱。
 
-詳細欄位對照表見 `.cache/views-mapping/04-db-schema-mapping.md`。
+詳細欄位對照表見 `.cache/views-mapping/refs/db-schema-mapping.md`。
 
 ## Genie 已知 SQL 生成問題
 

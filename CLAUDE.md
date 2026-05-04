@@ -76,7 +76,7 @@
 - **Genie 回應結構**：SQL 在 `attachments[].query.query`（非頂層 `sql`）；結果可疑時讀這個欄位驗證。
 - **View schema**（2026-05 後）：Genie 底層換成預聚合 view，欄位全為 snake_case。
   - `CostInBillingCurrency` → `total_cost`、`Tags['Purpose']` → `purpose`（已小寫）、`ResourceGroup` → `resource_group_name`、`ServiceName` → `service_name`
-  - 詳細對照：`.cache/views-mapping/04-db-schema-mapping.md`
+  - 詳細對照：`.cache/views-mapping/refs/db-schema-mapping.md`
 - **datasource 過濾**：`rag_develop_catalog` 同時含 m365 和 fabric，查詢時必加 `datasource='m365'` 或 `'fabric'`。
 - Genie space config 範例問題若出現 0 結果，可能是引用了已刪除欄位（view 欄位數量有優化）。
 
@@ -87,7 +87,9 @@
 ## 導航提示
 
 - 專案規範：`.claude\project-guidelines\SKILL.md`
-- Genie 欄位對照：`.cache\views-mapping\04-db-schema-mapping.md`
+- Genie 欄位對照：`.cache\views-mapping\refs\db-schema-mapping.md`
+- 月報速查表：`.cache\views-mapping\monthly\refcard.md`
+- 月報查詢規則：`.cache\views-mapping\monthly\query-rules.md`
 - Genie Space 設定：`docs\ActualCost-config-only.json`、`docs\AmortizedCost-config-only.json`
 - Python 程式碼：`src\azure_cost_mcp\`
 - MCP server 組裝：`src\azure_cost_mcp\server.py`
