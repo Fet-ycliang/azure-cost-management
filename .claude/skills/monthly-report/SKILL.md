@@ -135,6 +135,17 @@ period='2026-04-01' AND datasource='m365'，
 | Databricks 金額太小 | 用了 ActualCost | Followup：「請改用 AmortizedCost 重查」 |
 | 兩個訂閱混在一起 | 缺少 datasource 過濾 | Followup：「請加上 `datasource='m365'` 條件」 |
 
+## 核心計費口徑原則
+
+**預設一律使用 AmortizedCost（攤提口徑）。**
+
+| 場景 | 口徑 |
+|------|------|
+| 專案費用對照（攤提，含 VM / Storage / Databricks 全部服務） | **AmortizedCost** |
+| 第一份月報：Azure 平台整體服務報表 | **混合**：Databricks → AmortizedCost；其他 → ActualCost |
+
+> Databricks 走預繳 / Reservation，用 ActualCost 查到的值可能為 0，必須走 AmortizedCost。
+
 ## 查詢通用注意事項
 
 | 陷阱 | 正確做法 |

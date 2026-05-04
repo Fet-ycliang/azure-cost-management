@@ -260,6 +260,23 @@ Genie space 底層使用預聚合 view（`daily_azure_cost_usage_actual_view` / 
 
 詳細欄位對照表見 `.cache/views-mapping/04-db-schema-mapping.md`。
 
+## Genie 已知 SQL 生成問題
+
+透過 NL-to-SQL 查詢時，Genie 可能產生有問題的 SQL，每次結果可疑時優先確認：
+
+1. **OR 替代 AND（多條件組合）**：同時 filter `purpose` 和 `resource_group_name` 時，Genie 可能生成各條件間用 OR 而非 AND，導致結果暴增。重查時明確說：「兩個 filter 條件之間要用 AND」。
+
+2. **ILIKE 模糊比對替代精確 `=`**：Genie 可能生成 `purpose ILIKE '%chatbot%'` 而非 `purpose = 'chatbot'`，多比到其他 purpose 值。重查時指定「用精確比對（=），不要用 LIKE 或 ILIKE」。
+
+3. **`GROUP BY service_name` + `IS NOT NULL` 漏掉 null 記錄**：某些 RG 的 `service_name` 為 null，加上 `IS NOT NULL` 會漏掉這些費用。改用 `GROUP BY resource_group_name` 交叉驗證，或明確說「不要加 IS NOT NULL 條件」。
+
+4. **View 名稱 ≠ purpose tag 實際值**：View display name 不等於底層 purpose tag 的實際值。  
+   - `2025_mi_cat_mly` → purpose tag 是 `mi_cat`（不是 view 名）  
+   - `2025_digital_bandwidth_mly` → 底層對應 `2025_channel_bandwidth_mly`  
+   - 查詢時要用實際 purpose tag，不能用 view 名稱當 filter 值。
+
+5. **結果可疑先讀 SQL**：Genie 回應的 SQL 在 `attachments[].query.query`，不在頂層。若數字異常，先讀 SQL 確認 WHERE 條件，再決定是否補充說明重查。
+
 ## 搭配使用的 skills
 
 - **`microsoft-docs`**：驗證 Azure Cost Management API、Pricing、ACA、APIM 等官方文件

@@ -29,6 +29,17 @@ View 表名：
 - Azure 平台：`system_catalog.system_report.daily_azure_cost_usage_actual_view`（或 `_amortized_view`）
 - M365 平台：`rag_develop_catalog.system_report.daily_azure_cost_usage_actual_view`（或 `_amortized_view`）
 
+## 核心計費口徑原則
+
+**預設一律使用 AmortizedCost（攤提口徑）。**
+
+| 場景 | 口徑 | 說明 |
+|------|------|------|
+| 專案費用對照（攤提）| **AmortizedCost** | 預設，包含 VM / Storage / Databricks 全部服務 |
+| Azure 平台整體服務報表（第一份月報）| **混合**：Databricks → AmortizedCost；其他 → ActualCost | 僅第一份月報用 |
+
+Databricks 走預繳 / Reservation，ActualCost 可能為 0，必須用 AmortizedCost 才能反映實際算力成本。
+
 ## 狀態分類
 
 | 狀態 | 定義 | 處理方式 |
