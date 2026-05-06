@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from typing import Any
 
 from .azure_management import AzureManagementApiClient
@@ -14,8 +15,8 @@ SUBSCRIPTION_SCOPE_PATTERN = re.compile(r"^/subscriptions/([^/]+)", re.IGNORECAS
 class ResourceGraphClient(AzureManagementApiClient):
     """Azure Resource Graph REST client。"""
 
-    def __init__(self, settings: Settings) -> None:
-        super().__init__(settings)
+    def __init__(self, settings: Settings, credential_fn: Callable | None = None) -> None:
+        super().__init__(settings, credential_fn=credential_fn)
         self._settings = settings
 
     async def find_resources_missing_tags(

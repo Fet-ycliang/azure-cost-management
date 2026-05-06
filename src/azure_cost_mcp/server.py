@@ -16,6 +16,7 @@ import httpx
 from azure.core.exceptions import AzureError
 from mcp.server.fastmcp import FastMCP
 
+from .auth import create_m365_credential
 from .azure_management import AzureManagementApiClient, AzureManagementApiError
 from .config import Settings, get_settings
 from .cost_management import CostManagementClient
@@ -726,7 +727,7 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
     """建立 Azure Cost MCP server。"""
     current_settings = settings or get_settings()
     cost_client = CostManagementClient(current_settings)
-    resource_graph_client = ResourceGraphClient(current_settings)
+    resource_graph_client = ResourceGraphClient(current_settings, credential_fn=create_m365_credential)
     amortized_databricks_query_target = _resolve_databricks_query_target(
         current_settings,
         DatabricksQuerySource.AMORTIZED,
@@ -739,7 +740,7 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
         amortized_databricks_query_target["settings"]
     )
     storage_client = StorageExportClient(current_settings)
-    management_client = AzureManagementApiClient(current_settings)
+    management_client = AzureManagementApiClient(current_settings, credential_fn=create_m365_credential)
     lakebase_client = LakebaseClient(current_settings)
 
     mcp = FastMCP(

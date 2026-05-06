@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import Any
 
 import httpx
@@ -20,8 +20,13 @@ class AzureManagementApiError(RuntimeError):
 class AzureManagementApiClient:
     """Azure 管理平面 API 基底 client。"""
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        credential_fn: Callable[[Settings], Any] | None = None,
+    ) -> None:
         self._settings = settings
+        self._credential_fn = credential_fn or create_azure_credential
 
     async def _request(
         self,
@@ -32,7 +37,7 @@ class AzureManagementApiClient:
         json_body: dict[str, Any] | None = None,
         expected_statuses: tuple[int, ...] = (200, 204),
     ) -> dict[str, Any] | None:
-        credential = create_azure_credential(self._settings)
+        credential = self._credential_fn(self._settings)
         try:
             token = await credential.get_token(MANAGEMENT_SCOPE)
         finally:
