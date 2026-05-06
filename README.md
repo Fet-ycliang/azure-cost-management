@@ -553,3 +553,283 @@ uv run --group test pytest --cov-report=term-missing
 - `.claude\azure-cost-finops\SKILL.md`
 
 其內容承接目前這個專案的 FinOps / Azure Cost / Databricks / tag governance 規劃方向，供後續持續擴充。
+
+---
+
+## Tag 管理系統開發 Backlog
+
+> **目標**：建立完整的 Azure 資源 tag 盤點 → 本地整理 → 批次回寫流程，並用 Lakebase + pgvector 記錄每個階段歷史狀態。
+>
+> **優先順序**：M365 訂閱（`M365_COST_MANAGEMENT_SCOPE`）資源優先；Azure 平台訂閱為第二批。
+>
+> **驗收策略**：每個 Epic 完成後以 **gstack**（headless browser）做功能截圖驗收；Epic 2 另加 Obsidian 最終確認（可延後，不阻塞其他 Epic）。
+>
+> 狀態：`[ ]` 未開始 ｜ `[x]` 完成 ｜ `[-]` 進行中
+
+---
+
+### Epic 1：Tag 盤點與快取（Tag Inventory）
+
+#### PBI 1.1 — 擴充 ResourceGraphClient：全資源完整 tag 查詢
+
+- **目標**：讓 `ResourceGraphClient` 可以拉回指定訂閱下所有資源的完整 tag 現況
+- **關鍵檔案**：`src/azure_cost_mcp/resource_graph.py`
+- **實作重點**：
+  - 新增 `get_all_resources_with_tags(subscriptions, resource_types, resource_groups)` 方法
+  - KQL：`Resources | project id, name, type, resourceGroup, subscriptionId, location, tags`
+  - 支援分頁（`$skipToken`）、最多 1000 筆 / 頁
+- **相依 PBI**：無
+- **驗收條件**：呼叫方法後能回傳 `id, name, type, resourceGroup, subscriptionId, location, tags` 欄位；分頁能正確串接
+
+- [x] 實作（2026-05-06：`get_all_resources_with_tags` + 分頁 + `m365_subscriptions`）
+
+#### PBI 1.2 — 新增 `azure_cost_tag_inventory` MCP tool
+
+- **目標**：提供一個 MCP tool，讓 agent 一鍵盤點 M365 訂閱（預設）或任意訂閱的資源 tag 現況
+- **關鍵檔案**：`src/azure_cost_mcp/server.py`、`src/azure_cost_mcp/models.py`
+- **實作重點**：
+  - 新增 `TagInventoryParams`（`subscription_ids`, `resource_types`, `resource_groups`, `force_refresh`）
+  - `subscription_ids` 預設讀 `m365_cost_management_scope`
+  - 結果快取至 `.cache/tag-inventory/YYYY-MM-DD/{subscription_id}.json`（複用 `ApiCache` disk mode）
+  - 輸出摘要：資源總數、有 tag / 無 tag 比例、各 RG tag 覆蓋率
+- **相依 PBI**：PBI 1.1
+- **驗收條件**：
+  - gstack 截圖 MCP Inspector → `azure_cost_tag_inventory` → 回傳含資源數量與 tag 覆蓋率摘要
+  - `.cache/tag-inventory/` 目錄有對應日期的 JSON 快取
+
+- [x] 實作（2026-05-06：`azure_cost_tag_inventory` tool + `_build_tag_coverage_summary`）
+
+#### PBI 1.3 — 新增 tag inventory 相關 config 設定
+
+- **目標**：讓 tag inventory 的 cache 路徑與必要 tag keys 可以透過環境變數設定
+- **關鍵檔案**：`src/azure_cost_mcp/config.py`、`.env.example`、`README.md`
+- **實作重點**：
+  - `AZURE_COST_TAG_INVENTORY_CACHE_DIR`（預設 `.cache/tag-inventory`）
+  - `AZURE_COST_REQUIRED_TAG_KEYS`（逗號分隔，M365 預設含 `cost_center`）
+- **相依 PBI**：PBI 1.2
+- **驗收條件**：`.env.example` 已補充；`Settings` 可正確讀取
+
+- [x] 實作（2026-05-06：config.py + .env.example 已補充）
+
+---
+
+### Epic 2：Obsidian 整合（本地可讀格式輸出）
+
+> **Obsidian 驗收依賴說明**：gstack 可先做 HTML 預覽初驗；Obsidian 最終驗收可延後，不阻塞其他 Epic。
+
+#### PBI 2.1 — gen_tag_inventory_md.py：每個 RG 產出一份 md
+
+- **目標**：把 JSON 快取轉成 Obsidian-compatible YAML frontmatter Markdown，每個 RG 一份
+- **關鍵檔案**：`scripts/gen_tag_inventory_md.py`
+- **實作重點**：
+  - 輸入：`.cache/tag-inventory/YYYY-MM-DD/{subscription_id}.json`
+  - 輸出：`.cache/tag-inventory/obsidian/{subscription}/{rg}.md`
+  - YAML frontmatter：`rg, subscription, snapshot_date, total_resources, tagged, untagged, required_tags`
+  - 資源 table：`name, type, 各 required tag key 的值（空白則標 _(缺)_）`
+- **相依 PBI**：PBI 1.2
+- **驗收條件**：
+  - gstack 初驗：`python -m http.server` + headless browser 開啟，截圖確認 frontmatter 表格與缺漏標記正確
+  - Obsidian 最終驗收（可延後）：vault 開啟確認 frontmatter 顯示正確
+
+- [x] 實作（2026-05-06）
+
+#### PBI 2.2 — 總索引與 tag gap 分析
+
+- **目標**：產出跨 RG 的總覽，讓使用者快速看出哪個 RG tag 覆蓋率最差
+- **關鍵檔案**：`scripts/gen_tag_inventory_md.py`（同 PBI 2.1 腳本）
+- **實作重點**：
+  - `_index.md`：各 RG 覆蓋率總表，按覆蓋率由低到高排序
+  - `tag-gap-summary.md`：缺漏最多的資源 Top 20（附 resource_id 與缺哪些 tag）
+- **相依 PBI**：PBI 2.1
+- **驗收條件**：gstack 截圖 `_index.md` 確認排序與連結正確
+
+- [x] 實作（2026-05-06）
+
+#### PBI 2.3 — desired_tags 範本自動產生
+
+- **目標**：為缺 tag 的資源自動建立待填寫的 desired 範本，讓使用者在 Obsidian 或任意編輯器填入期望 tag 值
+- **關鍵檔案**：`scripts/gen_tag_inventory_md.py`（同 PBI 2.1 腳本）
+- **實作重點**：
+  - 輸出：`.cache/tag-inventory/desired/{rg}.json`
+  - 格式：`[{ "resource_id": "...", "name": "...", "type": "...", "current_tags": {}, "desired_tags": {} }]`
+  - 只為「有缺漏必要 tag」的資源產出，已完整 tag 的資源不產出
+- **相依 PBI**：PBI 2.1
+- **驗收條件**：
+  - 產出的 JSON 格式可被 PBI 3.1 的 diff tool 正確讀取
+  - `desired_tags` 欄位預填 required keys，值供使用者手動填寫
+
+- [x] 實作（2026-05-06）
+
+---
+
+### Epic 3：本地比對與批次回寫（Diff & Apply）
+
+#### PBI 3.1 — 新增 `azure_cost_tag_diff` MCP tool
+
+- **目標**：比對 desired JSON（使用者填好的期望值）與 Azure 現況，輸出 diff 清單
+- **關鍵檔案**：`src/azure_cost_mcp/server.py`、`src/azure_cost_mcp/models.py`
+- **實作重點**：
+  - 讀取 `.cache/tag-inventory/desired/*.json` 作為期望值
+  - Azure 現況優先讀當天 cache（`tag-inventory/YYYY-MM-DD`），過期才重新查
+  - 輸出：diff 清單（新增 tag、修改 tag、刪除 tag），預設 Markdown 表格
+  - 純 dry-run，無副作用
+  - `current_tags` 直接來自 desired JSON（PBI 2.3 生成時已抓快照），無需重新查 Azure
+- **相依 PBI**：PBI 2.3
+- **驗收條件**：
+  - gstack 截圖 MCP Inspector → `azure_cost_tag_diff` → 回傳 diff 表格，欄位含 resource_id、tag key、actual value、desired value
+
+- [x] 實作（2026-05-06）
+
+#### PBI 3.2 — 新增 `azure_cost_tag_apply` MCP tool
+
+- **目標**：根據 diff 結果批次更新 Azure 資源 tag，預設 dry-run；需明確開啟才實際執行
+- **關鍵檔案**：`src/azure_cost_mcp/server.py`、`src/azure_cost_mcp/azure_management.py`
+- **實作重點**：
+  - `azure_management.py` 新增 `patch_resource_tags(resource_id, tags)` 方法（Merge 語意，不刪除其他 tag）
+  - PATCH `{resource_id}/providers/Microsoft.Resources/tags/default?api-version=2021-04-01` 使用 Merge operation
+  - 安全機制：`azure_cost_tag_apply_enabled=True`（`.env` 開關）才實際執行，否則僅回傳 dry-run 清單
+  - 每筆變更寫入 Lakebase `tag_changes` table（依賴 Epic 4；若 Lakebase 未啟用則跳過）
+  - 複用 `AzureManagementApiClient`（既有基底類）
+- **相依 PBI**：PBI 3.1；PBI 4.3（選配：audit trail）
+- **驗收條件**：
+  - dry-run 模式：gstack 截圖確認回傳「會修改什麼」但 Azure portal 無變化
+  - apply 模式：gstack 截圖 Azure portal 資源 tag 頁面確認更新
+
+- [x] 實作（2026-05-06）
+
+#### PBI 3.3 — Rate limiting 與批次控制設定
+
+- **目標**：避免批次 apply 時打爆 Resource Management API 速率限制
+- **關鍵檔案**：`src/azure_cost_mcp/config.py`、`.env.example`
+- **實作重點**：
+  - `AZURE_COST_TAG_APPLY_BATCH_SIZE`（預設 10）
+  - `AZURE_COST_TAG_APPLY_DELAY_MS`（預設 250）：每批次之間的等待毫秒（0 表示不等待）
+- **相依 PBI**：PBI 3.2
+- **驗收條件**：批次 50 筆資源時，執行時間 ≥ `50/10 * 250ms = 1.25s`，不因速率限制出現 429
+
+- [x] 實作（2026-05-06）
+
+---
+
+### Epic 4：Lakebase 狀態儲存（pgvector 歷史記錄）
+
+> **參考實作**：`D:/azure_code/AuroraOps/databricks-builder-app/server/db/database.py`（OAuth token refresh + async pool 完整實作，直接移植）
+
+#### PBI 4.1 — Lakebase 連線設定
+
+- **目標**：讓 azure-cost-mcp 可選擇性地連接 Databricks Lakebase（PostgreSQL），預設關閉不影響現有功能
+- **關鍵檔案**：`src/azure_cost_mcp/lakebase.py`（新增）、`src/azure_cost_mcp/config.py`、`.env.example`
+- **實作重點**：
+  - 移植 AuroraOps `database.py` 的 async engine + OAuth token refresh（每 50 分鐘）模式
+  - 新增 config：`LAKEBASE_HOST`、`LAKEBASE_DATABASE`、`LAKEBASE_SCHEMA`、`LAKEBASE_INSTANCE_NAME`
+  - `LAKEBASE_ENABLED=false`（預設）；設成 `true` 才初始化連線
+  - 連線失敗不 crash 整個 server，只記 warning
+- **相依 PBI**：無（獨立）
+- **驗收條件**：`azure_cost_validate_connections` 在 Lakebase enabled 時顯示連線狀態；disabled 時顯示 `skipped`
+
+- [x] 實作（2026-05-06）
+
+#### PBI 4.2 — DB Schema（Alembic migrations）
+
+- **目標**：建立 tag 管理所需的三張 table
+- **關鍵檔案**：`alembic/`（新增目錄）、`alembic/versions/`
+- **Table 設計**：
+
+  ```sql
+  -- 每次盤點快照
+  tag_snapshots (
+    id UUID PK,
+    snapshot_date DATE NOT NULL,
+    subscription_id TEXT NOT NULL,
+    resource_id TEXT NOT NULL,
+    name TEXT,
+    type TEXT,
+    resource_group TEXT,
+    location TEXT,
+    tags JSONB,
+    created_at TIMESTAMPTZ DEFAULT now()
+  )
+
+  -- 每次套用變更紀錄（audit trail）
+  tag_changes (
+    id UUID PK,
+    applied_at TIMESTAMPTZ DEFAULT now(),
+    resource_id TEXT NOT NULL,
+    before_tags JSONB,
+    after_tags JSONB,
+    applied_by TEXT,
+    dry_run BOOL DEFAULT TRUE,
+    status TEXT  -- 'applied', 'skipped', 'failed'
+  )
+
+  -- 資源 tag 向量（pgvector，用於相似性建議）
+  tag_embeddings (
+    id UUID PK,
+    resource_id TEXT NOT NULL,
+    tag_summary TEXT,
+    embedding vector(1536),
+    snapshot_date DATE
+  )
+  ```
+
+- **相依 PBI**：PBI 4.1
+- **驗收條件**：`alembic upgrade head` 成功；三張 table 在 Lakebase 可查詢
+
+- [x] 實作（2026-05-06）
+
+#### PBI 4.3 — Tag 快照自動寫入
+
+- **目標**：每次執行 `azure_cost_tag_inventory` 時，若 Lakebase 已啟用，自動 upsert 快照資料
+- **關鍵檔案**：`src/azure_cost_mcp/server.py`、`src/azure_cost_mcp/lakebase.py`
+- **實作重點**：
+  - Lakebase disabled 時跳過，不影響 tool 正常執行
+  - upsert on `(resource_id, snapshot_date)` conflict
+- **相依 PBI**：PBI 1.2、PBI 4.2
+- **驗收條件**：執行 `azure_cost_tag_inventory` 後查詢 `tag_snapshots`，確認當天快照已寫入
+
+- [x] 實作（2026-05-06）
+
+#### PBI 4.4 — pgvector 相似性建議（`azure_cost_tag_suggest`）
+
+- **目標**：給定一個無 tag 的資源，找出最相似的已 tag 資源，建議補哪些 tag 值
+- **關鍵檔案**：`src/azure_cost_mcp/server.py`（新增 tool）、`src/azure_cost_mcp/lakebase.py`
+- **實作重點**：
+  - tag summary text：`"name: {name}, type: {type}, rg: {resource_group}, location: {location}"`
+  - Embedding 來源：優先 Databricks Vector Search（`databricks-vector-search` skill）；備選 Azure OpenAI Embedding API
+  - 查詢 `tag_embeddings`，回傳相似度 Top 5 + 建議 tag 值
+  - 新 MCP tool：`azure_cost_tag_suggest`
+- **相依 PBI**：PBI 4.2、PBI 4.3
+- **驗收條件**：
+  - gstack 截圖 MCP Inspector → `azure_cost_tag_suggest` → 回傳含 suggested tags + similarity score
+  - 建議值與目標資源 type/location 一致（合理性驗證）
+- **實作說明**：SQL 相似性查詢（同 type、同 RG 已完整標記的最新快照）作為 pgvector 的備選實作；`embedding_json` 欄位以 JSONB 預留，後續可升級為 `vector(1536)`
+
+- [x] 實作（2026-05-06）
+
+---
+
+### Tag 管理架構總覽
+
+```text
+[Azure Resource Graph API]
+        ↓ KQL（全資源 + 完整 tags，M365 訂閱優先）
+[azure_cost_tag_inventory tool]
+        ↓
+[.cache/tag-inventory/YYYY-MM-DD/{sub}.json]  ← 原始快取
+        ↓ gen_tag_inventory_md.py
+[.cache/tag-inventory/obsidian/]              ← Obsidian Vault 目錄
+  ├── _index.md                               ← RG 覆蓋率總表
+  ├── {subscription}/{rg}.md                 ← 每個 RG 一份 md
+  └── tag-gap-summary.md                     ← 缺漏資源 Top 20
+        ↓ 產出範本
+[.cache/tag-inventory/desired/{rg}.json]      ← 期望狀態（使用者填寫）
+
+[azure_cost_tag_diff tool]                    ← actual vs desired 比對
+        ↓ 確認差異後
+[azure_cost_tag_apply tool]                   ← PATCH Azure Resource Management API
+        ↓ audit trail
+[Lakebase PostgreSQL]
+  ├── tag_snapshots                           ← 每次盤點快照
+  ├── tag_changes                             ← 每次套用變更紀錄
+  └── tag_embeddings (pgvector)              ← 資源向量，相似性建議
+```

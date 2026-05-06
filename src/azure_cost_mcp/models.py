@@ -307,6 +307,114 @@ class DatabricksQueryParams(ResponseOptions):
         return self
 
 
+class TagInventoryParams(ResponseOptions):
+    """Tag 盤點工具輸入。"""
+
+    subscription_ids: list[str] | None = Field(
+        default=None,
+        description=(
+            "要盤點的 subscription IDs；省略時優先使用 M365_COST_MANAGEMENT_SCOPE，"
+            "再退回 AZURE_COST_MANAGEMENT_SCOPE。"
+        ),
+    )
+    resource_types: list[str] | None = Field(
+        default=None,
+        description="限定資源類型（例如 Microsoft.Compute/virtualMachines）；省略則查全部。",
+    )
+    resource_groups: list[str] | None = Field(
+        default=None,
+        description="限定 resource group 名稱；省略則查全部。",
+    )
+    required_tag_keys: list[str] | None = Field(
+        default=None,
+        description=(
+            "覆蓋 tag 覆蓋率計算使用的必要 tag keys；省略時使用系統設定 AZURE_COST_REQUIRED_TAG_KEYS。"
+        ),
+    )
+    force_refresh: bool = Field(
+        default=False,
+        description="強制重新查詢，忽略當日快取。",
+    )
+    max_results: int = Field(
+        default=5000,
+        ge=1,
+        le=20000,
+        description="最多回傳多少筆資源；預設 5000。",
+    )
+
+
+class TagDiffParams(ResponseOptions):
+    """Tag diff 工具輸入。"""
+
+    desired_dir: str | None = Field(
+        default=None,
+        description=(
+            "desired tags JSON 目錄路徑；省略時使用 AZURE_COST_TAG_INVENTORY_CACHE_DIR/desired。"
+        ),
+    )
+    rg_filter: list[str] | None = Field(
+        default=None,
+        description="只比對指定 resource group 名稱（大小寫不敏感）；省略則比對全部。",
+    )
+    subscription_filter: list[str] | None = Field(
+        default=None,
+        description="只比對指定 subscription IDs；省略則比對全部。",
+    )
+
+
+class TagApplyParams(ResponseOptions):
+    """Tag apply 工具輸入。"""
+
+    desired_dir: str | None = Field(
+        default=None,
+        description=(
+            "desired tags JSON 目錄路徑；省略時使用 AZURE_COST_TAG_INVENTORY_CACHE_DIR/desired。"
+        ),
+    )
+    rg_filter: list[str] | None = Field(
+        default=None,
+        description="只套用指定 resource group；省略則套用全部。",
+    )
+    subscription_filter: list[str] | None = Field(
+        default=None,
+        description="只套用指定 subscription IDs；省略則套用全部。",
+    )
+    apply: bool = Field(
+        default=False,
+        description=(
+            "設為 True 且 AZURE_COST_TAG_APPLY_ENABLED=true 時才實際執行；"
+            "否則僅回傳 dry-run 清單。"
+        ),
+    )
+    rationale: str | None = Field(
+        default=None,
+        description="本次套用原因，寫入 audit log。",
+    )
+
+
+class TagSuggestParams(ResponseOptions):
+    """Tag 相似性建議工具輸入。"""
+
+    resource_type: str | None = Field(
+        default=None,
+        description="限定資源類型（例如 Microsoft.Compute/virtualMachines）；省略則不限類型。",
+    )
+    resource_group: str | None = Field(
+        default=None,
+        description="限定 resource group 名稱；省略則查全部。",
+    )
+    required_tag_keys: list[str] | None = Field(
+        default=None,
+        description="覆蓋必要 tag keys；省略時使用系統設定 AZURE_COST_REQUIRED_TAG_KEYS。",
+    )
+    limit: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="最多回傳幾筆相似已標記資源。",
+    )
+
+
 class TagRemediationParams(ResponseOptions, RequiredTagsOptions):
     """tag remediation 工具輸入。"""
 
