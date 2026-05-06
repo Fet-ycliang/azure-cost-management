@@ -13,6 +13,13 @@ from sqlalchemy import Boolean, Date, DateTime, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+try:
+    from pgvector.sqlalchemy import Vector
+    _HAS_PGVECTOR = True
+except ImportError:  # pragma: no cover
+    Vector = None  # type: ignore[assignment,misc]
+    _HAS_PGVECTOR = False
+
 
 def _uuid() -> str:
     return str(uuid.uuid4())
@@ -97,11 +104,19 @@ class TagChange(Base):
         }
 
 
+def _embedding_column() -> Any:
+    """回傳 embedding 欄位類型：有 pgvector 時用 Vector(1536)，否則 JSONB 作 fallback。"""
+    if _HAS_PGVECTOR and Vector is not None:
+        return mapped_column(Vector(1536), nullable=True)
+    return mapped_column(JSONB, nullable=True)  # pragma: no cover
+
+
 class TagEmbedding(Base):
     """資源 tag 語意向量，供 pgvector 相似性搜尋使用。
 
-    embedding 欄位在首次使用前由 azure_cost_tag_suggest tool 填入。
+    embedding 欄位由 azure_cost_tag_suggest tool 填入。
     向量維度 1536（Azure OpenAI text-embedding-ada-002）。
+    pgvector 套件需已安裝（uv sync --group lakebase），且 DB 已啟用 vector extension。
     """
 
     __tablename__ = "tag_embeddings"
@@ -109,8 +124,7 @@ class TagEmbedding(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     resource_id: Mapped[str] = mapped_column(Text, nullable=False, index=True)
     tag_summary: Mapped[str] = mapped_column(Text, nullable=False)
-    # embedding 以 JSONB 暫存（安裝 pgvector 擴充後可改為 Vector(1536)）
-    embedding_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    embedding: Mapped[Any] = _embedding_column()
     snapshot_date: Mapped[datetime] = mapped_column(Date, nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=_utc_now

@@ -20,6 +20,7 @@ test = [
     "pytest>=8.3.5",
     "pytest-cov>=5.0.0",
     "sqlalchemy[asyncio]>=2.0",
+    "pgvector>=0.3.6",
 ]
 lakebase = [
     "sqlalchemy[asyncio]>=2.0",

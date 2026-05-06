@@ -262,6 +262,7 @@ lakebase = [
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 test = [
+    { name = "pgvector" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "sqlalchemy", extra = ["asyncio"] },
@@ -285,6 +286,7 @@ lakebase = [
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
 ]
 test = [
+    { name = "pgvector", specifier = ">=0.3.6" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-cov", specifier = ">=5.0.0" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
