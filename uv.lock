@@ -258,6 +258,7 @@ dependencies = [
 lakebase = [
     { name = "alembic" },
     { name = "asyncpg" },
+    { name = "databricks-sdk" },
     { name = "pgvector" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
@@ -282,6 +283,7 @@ requires-dist = [
 lakebase = [
     { name = "alembic", specifier = ">=1.13" },
     { name = "asyncpg", specifier = ">=0.30" },
+    { name = "databricks-sdk", specifier = ">=0.20" },
     { name = "pgvector", specifier = ">=0.3.6" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
 ]
@@ -676,6 +678,20 @@ wheels = [
 ]
 
 [[package]]
+name = "databricks-sdk"
+version = "0.106.0"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+dependencies = [
+    { name = "google-auth" },
+    { name = "protobuf" },
+    { name = "requests" },
+]
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/databricks-sdk/0.106.0/databricks_sdk-0.106.0.tar.gz", hash = "sha256:6bbd492cb8593747aced037b9186f8632e9d553fc358e6f3d83b7e959851d9d3" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/databricks-sdk/0.106.0/databricks_sdk-0.106.0-py3-none-any.whl", hash = "sha256:db9de5566279ae80dfea0ecd37231e8968523ef984e83cbe4bd77e50c59aa6a5" },
+]
+
+[[package]]
 name = "frozenlist"
 version = "1.8.0"
 source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
@@ -778,6 +794,19 @@ wheels = [
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/frozenlist/1.8.0/frozenlist-1.8.0-cp314-cp314t-win_amd64.whl", hash = "sha256:06be8f67f39c8b1dc671f5d83aaefd3358ae5cdcf8314552c57e7ed3e6475bdd" },
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/frozenlist/1.8.0/frozenlist-1.8.0-cp314-cp314t-win_arm64.whl", hash = "sha256:102e6314ca4da683dca92e3b1355490fed5f313b768500084fbe6371fddfdb79" },
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/frozenlist/1.8.0/frozenlist-1.8.0-py3-none-any.whl", hash = "sha256:0c18a16eab41e82c295618a77502e17b195883241c563b00f0aa5106fc4eaa0d" },
+]
+
+[[package]]
+name = "google-auth"
+version = "2.50.0"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "pyasn1-modules" },
+]
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/google-auth/2.50.0/google_auth-2.50.0.tar.gz", hash = "sha256:f35eafb191195328e8ce10a7883970877e7aeb49c2bfaa54aa0e394316d353d0" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/google-auth/2.50.0/google_auth-2.50.0-py3-none-any.whl", hash = "sha256:04382175e28b94f49694977f0a792688b59a668def1499e9d8de996dc9ce5b15" },
 ]
 
 [[package]]
@@ -1424,6 +1453,42 @@ wheels = [
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/propcache/0.4.1/propcache-0.4.1-cp314-cp314t-win_amd64.whl", hash = "sha256:990f6b3e2a27d683cb7602ed6c86f15ee6b43b1194736f9baaeb93d0016633b1" },
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/propcache/0.4.1/propcache-0.4.1-cp314-cp314t-win_arm64.whl", hash = "sha256:ecef2343af4cc68e05131e45024ba34f6095821988a9d0a02aa7c73fcc448aa9" },
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/propcache/0.4.1/propcache-0.4.1-py3-none-any.whl", hash = "sha256:af2a6052aeb6cf17d3e46ee169099044fd8224cbaf75c76a2ef596e8163e2237" },
+]
+
+[[package]]
+name = "protobuf"
+version = "6.33.6"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/protobuf/6.33.6/protobuf-6.33.6.tar.gz", hash = "sha256:a6768d25248312c297558af96a9f9c929e8c4cee0659cb07e780731095f38135" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/protobuf/6.33.6/protobuf-6.33.6-cp310-abi3-win32.whl", hash = "sha256:7d29d9b65f8afef196f8334e80d6bc1d5d4adedb449971fefd3723824e6e77d3" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/protobuf/6.33.6/protobuf-6.33.6-cp310-abi3-win_amd64.whl", hash = "sha256:0cd27b587afca21b7cfa59a74dcbd48a50f0a6400cfb59391340ad729d91d326" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/protobuf/6.33.6/protobuf-6.33.6-cp39-abi3-macosx_10_9_universal2.whl", hash = "sha256:9720e6961b251bde64edfdab7d500725a2af5280f3f4c87e57c0208376aa8c3a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/protobuf/6.33.6/protobuf-6.33.6-cp39-abi3-manylinux2014_aarch64.whl", hash = "sha256:e2afbae9b8e1825e3529f88d514754e094278bb95eadc0e199751cdd9a2e82a2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/protobuf/6.33.6/protobuf-6.33.6-cp39-abi3-manylinux2014_s390x.whl", hash = "sha256:c96c37eec15086b79762ed265d59ab204dabc53056e3443e702d2681f4b39ce3" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/protobuf/6.33.6/protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl", hash = "sha256:e9db7e292e0ab79dd108d7f1a94fe31601ce1ee3f7b79e0692043423020b0593" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/protobuf/6.33.6/protobuf-6.33.6-py3-none-any.whl", hash = "sha256:77179e006c476e69bf8e8ce866640091ec42e1beb80b213c3900006ecfba6901" },
+]
+
+[[package]]
+name = "pyasn1"
+version = "0.6.3"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/pyasn1/0.6.3/pyasn1-0.6.3.tar.gz", hash = "sha256:697a8ecd6d98891189184ca1fa05d1bb00e2f84b5977c481452050549c8a72cf" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/pyasn1/0.6.3/pyasn1-0.6.3-py3-none-any.whl", hash = "sha256:a80184d120f0864a52a073acc6fc642847d0be408e7c7252f31390c0f4eadcde" },
+]
+
+[[package]]
+name = "pyasn1-modules"
+version = "0.4.2"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+dependencies = [
+    { name = "pyasn1" },
+]
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/pyasn1-modules/0.4.2/pyasn1_modules-0.4.2.tar.gz", hash = "sha256:677091de870a80aae844b1ca6134f54652fa2c8c5a52aa396440ac3106e941e6" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/pyasn1-modules/0.4.2/pyasn1_modules-0.4.2-py3-none-any.whl", hash = "sha256:29253a9207ce32b64c3ac6600edc75368f98473906e8fd1043bd6b5b1de2c14a" },
 ]
 
 [[package]]

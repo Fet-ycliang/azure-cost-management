@@ -98,6 +98,12 @@
 - **`init()` 不是冪等的**：重複呼叫會覆蓋 `_engine` 但不釋放舊的 engine 連線池。永遠用 `if not client.is_ready():` 守門。
 - 所有 Lakebase 呼叫都用 `try/except` 包住，失敗只 `logger.warning()`，不影響 MCP tool 的正常回傳。
 
+### Lakebase 連線踩坑（Epic 4 Autoscaling 驗收後更新）
+- **`databricks-sdk` 必須加進 `[dependency-groups].lakebase`**：`WorkspaceClient` 的 import 在 uv venv 裡若找不到 databricks-sdk，`_get_workspace_client` 會靜默回傳 `None`，導致 token 生成失敗、upsert 被 `logger.warning` 吞掉，完全沒有明顯錯誤提示。
+- **`WorkspaceClient()` 讀 OS 環境變數，不讀 `.env`**：pydantic-settings 的 `.env` 只供 `Settings` class 使用；`WorkspaceClient()` 要有 `DATABRICKS_HOST`/`DATABRICKS_TOKEN` 才能正確使用 PAT 認證。解法：在 `Settings` 新增 `databricks_host`/`databricks_token` 欄位，並在 `_get_workspace_client` 明確傳入。
+- **asyncpg + asyncpg SSL + SNI**：不可用 `connect_args["host"] = IP_address` 覆蓋 URL 中的 hostname，否則 TLS ClientHello 不含 SNI，Databricks Lakebase 會拒絕連線（`Connection does not have SNI`）。改用 `ssl=ssl.create_default_context()` 讓 asyncpg 用 URL hostname 進行 SNI 握手。
+- **`snapshot_date` 型別**：asyncpg 的 `$2::DATE` 參數需傳 `datetime.date` 物件，不接受字串 `'2026-05-06'`（錯誤：`'str' object has no attribute 'toordinal'`）。在 `upsert_tag_snapshots` 呼叫 `_date.fromisoformat(snapshot_date)` 轉換。
+
 ## Windows 開發環境注意
 
 - **hooks 裡使用 jq**：Windows 上 jq 輸出會帶 `\r`（carriage return），pipe 取檔案路徑時需加 `| tr -d '\r'`，否則 Python 等工具會收到帶 `\r` 的路徑而報錯。
