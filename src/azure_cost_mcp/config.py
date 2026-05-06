@@ -222,7 +222,7 @@ class Settings(BaseSettings):
     lakebase_instance_name: str | None = Field(
         default=None,
         validation_alias="LAKEBASE_INSTANCE_NAME",
-        description="Lakebase instance name（正式環境動態 OAuth 模式）。",
+        description="Lakebase Provisioned instance name（舊版模式）。",
     )
     lakebase_database: str | None = Field(
         default=None,
@@ -237,7 +237,17 @@ class Settings(BaseSettings):
     lakebase_host: str | None = Field(
         default=None,
         validation_alias="LAKEBASE_HOST",
-        description="Lakebase 主機位址（選填，動態模式下可自動推導）。",
+        description="Lakebase PostgreSQL 主機位址。",
+    )
+    lakebase_endpoint: str | None = Field(
+        default=None,
+        validation_alias="LAKEBASE_ENDPOINT",
+        description="Lakebase Autoscaling endpoint 完整路徑，例如 projects/my-app/branches/production/endpoints/primary。",
+    )
+    lakebase_user: str | None = Field(
+        default=None,
+        validation_alias="LAKEBASE_USER",
+        description="Lakebase 連線使用者（Databricks 帳號 email）。",
     )
     azure_cost_tag_apply_batch_size: int = Field(
         default=10,

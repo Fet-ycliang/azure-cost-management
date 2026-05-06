@@ -64,29 +64,39 @@ def _resolve_hostname(hostname: str) -> str | None:
 
 
 def _get_workspace_client(settings: Settings) -> Any:
-    """取得 Databricks WorkspaceClient（用於動態 OAuth token）。"""
+    """取得 Databricks WorkspaceClient（用於動態 OAuth token）。
+
+    依賴環境變數 DATABRICKS_HOST / DATABRICKS_TOKEN，或 ~/.databrickscfg。
+    """
     try:
         from databricks.sdk import WorkspaceClient
-
-        instance_name = settings.lakebase_instance_name or ""
-        host_url = f"https://{settings.lakebase_host}" if settings.lakebase_host else ""
-        return WorkspaceClient(host=host_url or None)
+        return WorkspaceClient()
     except Exception as exc:
         logger.debug(f"Could not create WorkspaceClient: {exc}")
         return None
 
 
 def _generate_token(settings: Settings) -> str | None:
-    """透過 Databricks SDK 產生 Lakebase OAuth token。"""
+    """透過 Databricks SDK 產生 Lakebase OAuth token。
+
+    - Autoscaling 模式：w.postgres.generate_database_credential(endpoint=...)
+    - Provisioned 模式（舊版）：w.database.generate_database_credential(instance_names=[...])
+    """
     client = _get_workspace_client(settings)
     if not client:
         return None
     try:
-        instance_name = settings.lakebase_instance_name or ""
-        cred = client.database.generate_database_credential(
-            request_id=str(uuid.uuid4()),
-            instance_names=[instance_name],
-        )
+        if settings.lakebase_endpoint:
+            # Autoscaling 模式
+            cred = client.postgres.generate_database_credential(
+                endpoint=settings.lakebase_endpoint,
+            )
+        else:
+            # Provisioned 模式（舊版）
+            cred = client.database.generate_database_credential(
+                request_id=str(uuid.uuid4()),
+                instance_names=[settings.lakebase_instance_name or ""],
+            )
         return cred.token
     except Exception as exc:
         logger.error(f"Failed to generate Lakebase token: {exc}")
@@ -107,7 +117,8 @@ class LakebaseClient:
         s = self._settings
         return s.lakebase_enabled and bool(
             s.lakebase_pg_url
-            or (s.lakebase_instance_name and s.lakebase_database)
+            or (s.lakebase_endpoint and s.lakebase_host)        # Autoscaling 模式
+            or (s.lakebase_instance_name and s.lakebase_database)  # Provisioned 模式（舊版）
         )
 
     def is_ready(self) -> bool:
@@ -134,16 +145,24 @@ class LakebaseClient:
             if url.startswith("postgresql://"):
                 url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
         else:
-            # 動態 OAuth 模式
+            # 動態 OAuth 模式（Autoscaling 或 Provisioned）
             self._current_token = await asyncio.to_thread(_generate_token, s)
             if not self._current_token:
                 raise RuntimeError(
-                    f"無法產生 Lakebase OAuth token（instance: {s.lakebase_instance_name}）"
+                    f"無法產生 Lakebase OAuth token（endpoint: {s.lakebase_endpoint or s.lakebase_instance_name}）"
                 )
-            host = s.lakebase_host or f"{s.lakebase_instance_name}.database.us-east-1.cloud.databricks.com"
             from urllib.parse import quote
-            username = quote(s.lakebase_instance_name or "", safe="")
-            url = f"postgresql+asyncpg://{username}:@{host}:5432/{s.lakebase_database}"
+            if s.lakebase_endpoint:
+                # Autoscaling：host 必填；username 為 Databricks 帳號 email
+                host = s.lakebase_host or ""
+                username = quote(s.lakebase_user or "", safe="")
+                db = s.lakebase_database or "databricks_postgres"
+            else:
+                # Provisioned（舊版）
+                host = s.lakebase_host or f"{s.lakebase_instance_name}.database.us-east-1.cloud.databricks.com"
+                username = quote(s.lakebase_instance_name or "", safe="")
+                db = s.lakebase_database or "databricks_postgres"
+            url = f"postgresql+asyncpg://{username}:{self._current_token}@{host}:5432/{db}"
 
             hostaddr = await asyncio.to_thread(_resolve_hostname, host.split(":")[0])
             if hostaddr:

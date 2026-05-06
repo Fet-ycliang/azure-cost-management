@@ -371,7 +371,7 @@ class TestLakebaseModelsToDicts:
             id="emb-uuid",
             resource_id="/r1",
             tag_summary="name: vm-1, type: VirtualMachine",
-            embedding_json=None,
+            embedding=None,
             snapshot_date=date(2026, 5, 6),
         )
 
