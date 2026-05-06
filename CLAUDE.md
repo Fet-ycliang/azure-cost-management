@@ -104,9 +104,19 @@
 - **asyncpg + asyncpg SSL + SNI**：不可用 `connect_args["host"] = IP_address` 覆蓋 URL 中的 hostname，否則 TLS ClientHello 不含 SNI，Databricks Lakebase 會拒絕連線（`Connection does not have SNI`）。改用 `ssl=ssl.create_default_context()` 讓 asyncpg 用 URL hostname 進行 SNI 握手。
 - **`snapshot_date` 型別**：asyncpg 的 `$2::DATE` 參數需傳 `datetime.date` 物件，不接受字串 `'2026-05-06'`（錯誤：`'str' object has no attribute 'toordinal'`）。在 `upsert_tag_snapshots` 呼叫 `_date.fromisoformat(snapshot_date)` 轉換。
 
+### 多平台 Azure 認證（credential_fn 注入）
+- **`AzureManagementApiClient` 接受 `credential_fn` 參數**：當不同 Azure 訂閱需要不同 credential 時，以 `credential_fn: Callable[[Settings], Any] | None` 注入建構子，而非在 `_request()` 裡寫死 `create_azure_credential`。`credential_fn=None` 時自動退回 `create_azure_credential`，向後相容。
+- **`create_m365_credential(settings)` 三欄位同時填才生效**：`M365_COST_MANAGEMENT_TENANT` + `M365_SP_CLIENT_ID` + `M365_SP_CLIENT_SECRET` 三個欄位缺任一，自動退回 `create_azure_credential()`，不拋例外。
+- **路由原則不能混淆**：`resource_graph_client` 與 `management_client`（tag 盤點 / apply 路徑）使用 `create_m365_credential`；`CostManagementClient` 與 `StorageExportClient`（Azure 平台路徑）保持預設 `create_azure_credential`。兩者若共用同一 credential，當 SP 權限範圍不含 Azure 平台訂閱時，cost query 會拿到 403。
+
+### 測試 fixture 淺層複製
+- **`dict(obj)` 是淺層複製**：module-level fixture dict 若含巢狀 dict（如 `desired_tags`），`dict(ENTRY)` 後 nested dict 仍指向同一物件。test A 若修改 `entry["desired_tags"]`，會靜默污染後續 tests（症狀：某 test 單跑 pass，全套跑 fail，且錯誤值來自另一個 test 的副作用）。
+- **Fix**：對含有巢狀 mutable 值的 fixture，一律用 `copy.deepcopy(ENTRY)` 而非 `dict(ENTRY)`。
+
 ## Windows 開發環境注意
 
 - **hooks 裡使用 jq**：Windows 上 jq 輸出會帶 `\r`（carriage return），pipe 取檔案路徑時需加 `| tr -d '\r'`，否則 Python 等工具會收到帶 `\r` 的路徑而報錯。
+- **`uv run` 被執行中的 server 鎖住**：MCP server 執行中時，`uv run python scripts/xxx.py` 會失敗（`error: failed to remove file azure-cost-mcp.exe: 程序無法存取檔案`），因為 uv 試圖更新鎖定中的 `.exe`。**Fix**：改用 `python scripts/xxx.py` 直接呼叫，不透過 `uv run`。
 
 ## 導航提示
 
@@ -118,4 +128,6 @@
 - Python 程式碼：`src\azure_cost_mcp\`
 - MCP server 組裝：`src\azure_cost_mcp\server.py`
 - CLI 入口：`src\azure_cost_mcp\__main__.py`
+- Tag 盤點 MD 生成：`scripts\gen_tag_inventory_md.py`（產生 Obsidian + desired JSON）
+- Tag 批次填值：`scripts\fill_rg_tags.py`（`--dry-run` 先確認再執行；`--overwrite` 強制覆蓋已有值）
 

@@ -110,3 +110,70 @@ def test_create_azure_credential_falls_back_to_default(monkeypatch: pytest.Monke
     credential = auth_module.create_azure_credential(make_settings(azure_cost_auth_mode="default"))
 
     assert credential is sentinel
+
+
+# ---------------------------------------------------------------------------
+# create_m365_credential
+# ---------------------------------------------------------------------------
+
+
+def test_create_m365_credential_uses_sp_when_all_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, str] = {}
+    sentinel = object()
+
+    def fake_client_secret_credential(*, tenant_id: str, client_id: str, client_secret: str) -> object:
+        captured.update({"tenant_id": tenant_id, "client_id": client_id, "client_secret": client_secret})
+        return sentinel
+
+    monkeypatch.setattr(auth_module, "ClientSecretCredential", fake_client_secret_credential)
+
+    credential = auth_module.create_m365_credential(
+        make_settings(
+            m365_cost_management_tenant="m365-tenant",
+            m365_sp_client_id="m365-client-id",
+            m365_sp_client_secret="m365-secret",
+        )
+    )
+
+    assert credential is sentinel
+    assert captured == {
+        "tenant_id": "m365-tenant",
+        "client_id": "m365-client-id",
+        "client_secret": "m365-secret",
+    }
+
+
+def test_create_m365_credential_falls_back_when_client_id_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cli_sentinel = object()
+    monkeypatch.setattr(auth_module, "AzureCliCredential", lambda: cli_sentinel)
+
+    credential = auth_module.create_m365_credential(
+        make_settings(
+            azure_cost_auth_mode="azure-cli",
+            m365_cost_management_tenant="m365-tenant",
+            m365_sp_client_id=None,
+            m365_sp_client_secret="m365-secret",
+        )
+    )
+
+    assert credential is cli_sentinel
+
+
+def test_create_m365_credential_falls_back_when_tenant_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cli_sentinel = object()
+    monkeypatch.setattr(auth_module, "AzureCliCredential", lambda: cli_sentinel)
+
+    credential = auth_module.create_m365_credential(
+        make_settings(
+            azure_cost_auth_mode="azure-cli",
+            m365_cost_management_tenant=None,
+            m365_sp_client_id="m365-client-id",
+            m365_sp_client_secret="m365-secret",
+        )
+    )
+
+    assert credential is cli_sentinel

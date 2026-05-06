@@ -47,3 +47,22 @@ def create_azure_credential(settings: Settings) -> Any:
         return ManagedIdentityCredential(**kwargs)
 
     return DefaultAzureCredential()
+
+
+def create_m365_credential(settings: Settings) -> Any:
+    """建立 M365 平台專用 credential。
+
+    若 M365_SP_CLIENT_ID / M365_SP_CLIENT_SECRET / M365_COST_MANAGEMENT_TENANT
+    三個欄位均已設定，使用 dw_fabric_ap SP；否則退回 create_azure_credential()。
+    """
+    if (
+        settings.m365_sp_client_id
+        and settings.m365_sp_client_secret
+        and settings.m365_cost_management_tenant
+    ):
+        return ClientSecretCredential(
+            tenant_id=settings.m365_cost_management_tenant,
+            client_id=settings.m365_sp_client_id,
+            client_secret=settings.m365_sp_client_secret,
+        )
+    return create_azure_credential(settings)

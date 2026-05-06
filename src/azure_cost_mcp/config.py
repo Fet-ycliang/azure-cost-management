@@ -103,6 +103,16 @@ class Settings(BaseSettings):
         validation_alias="M365_COST_MANAGEMENT_TENANT",
         description="M365 成本驗證使用的 tenant ID（目前主要供 operator-run 驗證流程使用）。",
     )
+    m365_sp_client_id: str | None = Field(
+        default=None,
+        validation_alias="M365_SP_CLIENT_ID",
+        description="M365 平台專用 Service Principal client ID（dw_fabric_ap）。",
+    )
+    m365_sp_client_secret: str | None = Field(
+        default=None,
+        validation_alias="M365_SP_CLIENT_SECRET",
+        description="M365 平台專用 Service Principal client secret。",
+    )
     m365_cost_management_scope: str | None = Field(
         default=None,
         validation_alias="M365_COST_MANAGEMENT_SCOPE",
@@ -205,9 +215,13 @@ class Settings(BaseSettings):
         description="Tag 盤點快取目錄。",
     )
     azure_cost_required_tag_keys: str = Field(
-        default="cost_center",
+        default="cost_center,environment,workload,application,owner",
         validation_alias="AZURE_COST_REQUIRED_TAG_KEYS",
-        description="Tag 盤點必要的 tag keys，多個以逗號分隔（例如 cost_center,Environment）。",
+        description=(
+            "Tag 盤點必要的 tag keys，逗號分隔。"
+            "FinOps 標準五鍵：cost_center, environment, workload, application, owner。"
+            "FET 現有 Purpose→application、EnvType→environment 需遷移。"
+        ),
     )
     lakebase_enabled: bool = Field(
         default=False,
@@ -313,6 +327,8 @@ class Settings(BaseSettings):
         "azure_cost_cache_dir",
         "m365_cost_management_tenant",
         "m365_cost_management_scope",
+        "m365_sp_client_id",
+        "m365_sp_client_secret",
         "databricks_mcp_amortized_query_tool_name",
         "databricks_mcp_actual_query_tool_name",
         "databricks_mcp_query_tool_name",

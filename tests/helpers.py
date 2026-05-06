@@ -51,6 +51,8 @@ def make_settings(**overrides: Any) -> Settings:
         "lakebase_host": "LAKEBASE_HOST",
         "m365_cost_management_scope": "M365_COST_MANAGEMENT_SCOPE",
         "m365_cost_management_tenant": "M365_COST_MANAGEMENT_TENANT",
+        "m365_sp_client_id": "M365_SP_CLIENT_ID",
+        "m365_sp_client_secret": "M365_SP_CLIENT_SECRET",
     }
     base = {
         "AZURE_COST_MCP_TRANSPORT": "stdio",
@@ -97,6 +99,8 @@ def make_settings(**overrides: Any) -> Settings:
         "LAKEBASE_HOST": None,
         "M365_COST_MANAGEMENT_SCOPE": "/subscriptions/m365-sub-default",
         "M365_COST_MANAGEMENT_TENANT": "",
+        "M365_SP_CLIENT_ID": "",
+        "M365_SP_CLIENT_SECRET": "",
     }
     normalized_overrides = {
         alias_by_field.get(key, key): value for key, value in overrides.items()
