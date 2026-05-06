@@ -66,10 +66,16 @@ def _resolve_hostname(hostname: str) -> str | None:
 def _get_workspace_client(settings: Settings) -> Any:
     """取得 Databricks WorkspaceClient（用於動態 OAuth token）。
 
-    依賴環境變數 DATABRICKS_HOST / DATABRICKS_TOKEN，或 ~/.databrickscfg。
+    優先使用 Settings 中的 DATABRICKS_HOST / DATABRICKS_TOKEN；
+    若未設定則退回 SDK 預設（env vars 或 ~/.databrickscfg）。
     """
     try:
         from databricks.sdk import WorkspaceClient
+        if settings.databricks_host and settings.databricks_token:
+            return WorkspaceClient(
+                host=settings.databricks_host,
+                token=settings.databricks_token,
+            )
         return WorkspaceClient()
     except Exception as exc:
         logger.debug(f"Could not create WorkspaceClient: {exc}")
@@ -135,8 +141,11 @@ class LakebaseClient:
         from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
         s = self._settings
+        import ssl as _ssl
+        _ssl_ctx = _ssl.create_default_context()
+
         connect_args: dict[str, Any] = {
-            "ssl": "require",
+            "ssl": _ssl_ctx,
             "server_settings": {"search_path": s.lakebase_schema},
         }
 
@@ -163,10 +172,7 @@ class LakebaseClient:
                 username = quote(s.lakebase_instance_name or "", safe="")
                 db = s.lakebase_database or "databricks_postgres"
             url = f"postgresql+asyncpg://{username}:{self._current_token}@{host}:5432/{db}"
-
-            hostaddr = await asyncio.to_thread(_resolve_hostname, host.split(":")[0])
-            if hostaddr:
-                connect_args["host"] = hostaddr
+            # SNI 必須與 URL 中的 hostname 一致，不可用 IP 覆蓋
 
         self._engine = create_async_engine(
             url,
@@ -274,14 +280,17 @@ class LakebaseClient:
         if not self.is_configured() or not self._session_maker:
             return 0
 
+        from datetime import date as _date
         from sqlalchemy import delete, text
         from .lakebase_models import TagSnapshot
+
+        parsed_date = _date.fromisoformat(snapshot_date) if isinstance(snapshot_date, str) else snapshot_date
 
         inserted = 0
         async with self.session_scope() as session:
             for r in resources:
                 row = TagSnapshot(
-                    snapshot_date=snapshot_date,
+                    snapshot_date=parsed_date,
                     subscription_id=r.get("subscriptionId") or "",
                     resource_id=r.get("id") or "",
                     name=r.get("name") or "",

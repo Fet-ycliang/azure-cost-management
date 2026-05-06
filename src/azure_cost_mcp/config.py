@@ -249,6 +249,16 @@ class Settings(BaseSettings):
         validation_alias="LAKEBASE_USER",
         description="Lakebase 連線使用者（Databricks 帳號 email）。",
     )
+    databricks_host: str | None = Field(
+        default=None,
+        validation_alias="DATABRICKS_HOST",
+        description="Databricks workspace URL，供 Lakebase OAuth token 生成使用。",
+    )
+    databricks_token: str | None = Field(
+        default=None,
+        validation_alias="DATABRICKS_TOKEN",
+        description="Databricks PAT，供 Lakebase OAuth token 生成使用。",
+    )
     azure_cost_tag_apply_batch_size: int = Field(
         default=10,
         ge=1,
