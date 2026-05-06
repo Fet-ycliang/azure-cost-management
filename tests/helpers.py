@@ -39,6 +39,18 @@ def make_settings(**overrides: Any) -> Settings:
         "databricks_mcp_tag_audit_tool_name": "DATABRICKS_MCP_TAG_AUDIT_TOOL_NAME",
         "databricks_mcp_tag_remediation_tool_name": "DATABRICKS_MCP_TAG_REMEDIATION_TOOL_NAME",
         "azure_cost_tag_apply_enabled": "AZURE_COST_TAG_APPLY_ENABLED",
+        "azure_cost_tag_apply_batch_size": "AZURE_COST_TAG_APPLY_BATCH_SIZE",
+        "azure_cost_tag_apply_delay_ms": "AZURE_COST_TAG_APPLY_DELAY_MS",
+        "azure_cost_tag_inventory_cache_dir": "AZURE_COST_TAG_INVENTORY_CACHE_DIR",
+        "azure_cost_required_tag_keys": "AZURE_COST_REQUIRED_TAG_KEYS",
+        "lakebase_enabled": "LAKEBASE_ENABLED",
+        "lakebase_pg_url": "LAKEBASE_PG_URL",
+        "lakebase_instance_name": "LAKEBASE_INSTANCE_NAME",
+        "lakebase_database": "LAKEBASE_DATABASE_NAME",
+        "lakebase_schema": "LAKEBASE_SCHEMA_NAME",
+        "lakebase_host": "LAKEBASE_HOST",
+        "m365_cost_management_scope": "M365_COST_MANAGEMENT_SCOPE",
+        "m365_cost_management_tenant": "M365_COST_MANAGEMENT_TENANT",
     }
     base = {
         "AZURE_COST_MCP_TRANSPORT": "stdio",
@@ -73,6 +85,18 @@ def make_settings(**overrides: Any) -> Settings:
         "DATABRICKS_MCP_TAG_AUDIT_TOOL_NAME": "tag_audit_tool",
         "DATABRICKS_MCP_TAG_REMEDIATION_TOOL_NAME": "tag_remediation_tool",
         "AZURE_COST_TAG_APPLY_ENABLED": False,
+        "AZURE_COST_TAG_APPLY_BATCH_SIZE": 10,
+        "AZURE_COST_TAG_APPLY_DELAY_MS": 0,
+        "AZURE_COST_TAG_INVENTORY_CACHE_DIR": ".cache/tag-inventory-test",
+        "AZURE_COST_REQUIRED_TAG_KEYS": "cost_center",
+        "LAKEBASE_ENABLED": False,
+        "LAKEBASE_PG_URL": None,
+        "LAKEBASE_INSTANCE_NAME": None,
+        "LAKEBASE_DATABASE_NAME": None,
+        "LAKEBASE_SCHEMA_NAME": "azure_cost_mcp",
+        "LAKEBASE_HOST": None,
+        "M365_COST_MANAGEMENT_SCOPE": "/subscriptions/m365-sub-default",
+        "M365_COST_MANAGEMENT_TENANT": "",
     }
     normalized_overrides = {
         alias_by_field.get(key, key): value for key, value in overrides.items()

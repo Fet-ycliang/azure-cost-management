@@ -201,6 +201,46 @@ description: >
 
 這兩者可以同時存在，但不要混成同一層責任。
 
+### LakebaseClient 實作踩坑（Epic 4 整合後）
+
+**兩步驟可用性判斷**：`is_configured()`（讀 Settings，sync）≠ `is_ready()`（engine 已 init，async 後才為 True）。兩個要分開用：
+
+```python
+if lakebase_client.is_configured():
+    if not lakebase_client.is_ready():
+        await lakebase_client.init()
+    await lakebase_client.upsert_tag_snapshots(...)
+```
+
+**`init()` 不是冪等**：重複呼叫會覆蓋 `_engine` 但不 dispose 舊連線池，造成資源洩漏。永遠用 `is_ready()` 守門。
+
+**test group 需含 SQLAlchemy**：`[dependency-groups].test` 必須加 `"sqlalchemy[asyncio]>=2.0"`。即使測試沒有連真實 DB，ORM model 的 `import` 也需要此依賴，否則 `from azure_cost_mcp.lakebase_models import TagSnapshot` 就會失敗。安裝時執行 `uv sync --group test`（不加 group flag 不會裝）。
+
+**`AsyncMock` vs `MagicMock` for SQLAlchemy session**：
+
+| session method | 正確 mock 類型 | 原因 |
+|---|---|---|
+| `session.merge()` | `AsyncMock` | SQLAlchemy async merge 是 coroutine |
+| `session.execute()` | `AsyncMock` | async execute |
+| `session.add()` | `MagicMock` 或直接不 mock | SQLAlchemy `add()` 是**同步**方法；用 `AsyncMock` 會導致 `RuntimeWarning: coroutine never awaited` |
+
+使用 `AsyncMock()` 作為 session 時，**所有** attribute access 都會回傳 coroutine，包括 `add()`，因此含 `session.add()` 的測試應改用 `MagicMock()` 作為 session。
+
+**`session_scope` mock 模式**：測試 Lakebase 業務邏輯時，最乾淨的方法是用 `patch.object` 完全替換 `session_scope`：
+
+```python
+@asynccontextmanager
+async def _fake_scope():
+    yield mock_session
+
+with patch.object(client, "session_scope", _fake_scope):
+    count = asyncio.run(client.upsert_tag_snapshots(resources, "2026-05-06"))
+```
+
+這樣完全繞過 engine 建立，讓測試只驗證 session 操作的業務邏輯。
+
+**pgvector JSONB fallback**：目前 `tag_embeddings.embedding_json` 用 `JSONB` 存 embedding，`embedding vector(1536)` 需 pgvector extension 安裝後才能啟用。現階段相似性查詢走 tag key 覆蓋率過濾，非真正向量搜尋。
+
 ## Databricks 能力擴充建議順序
 
 若後續要把專案能力往上擴，建議順序如下：

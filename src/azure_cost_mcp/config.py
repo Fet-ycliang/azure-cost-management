@@ -199,6 +199,65 @@ class Settings(BaseSettings):
         validation_alias="AZURE_COST_TAG_APPLY_ENABLED",
         description="是否允許直接套用 tag 修正。",
     )
+    azure_cost_tag_inventory_cache_dir: str = Field(
+        default=".cache/tag-inventory",
+        validation_alias="AZURE_COST_TAG_INVENTORY_CACHE_DIR",
+        description="Tag 盤點快取目錄。",
+    )
+    azure_cost_required_tag_keys: str = Field(
+        default="cost_center",
+        validation_alias="AZURE_COST_REQUIRED_TAG_KEYS",
+        description="Tag 盤點必要的 tag keys，多個以逗號分隔（例如 cost_center,Environment）。",
+    )
+    lakebase_enabled: bool = Field(
+        default=False,
+        validation_alias="LAKEBASE_ENABLED",
+        description="是否啟用 Lakebase 狀態儲存（tag 快照與 audit trail）。",
+    )
+    lakebase_pg_url: str | None = Field(
+        default=None,
+        validation_alias="LAKEBASE_PG_URL",
+        description="Lakebase PostgreSQL 靜態連線 URL（本地開發用）。",
+    )
+    lakebase_instance_name: str | None = Field(
+        default=None,
+        validation_alias="LAKEBASE_INSTANCE_NAME",
+        description="Lakebase instance name（正式環境動態 OAuth 模式）。",
+    )
+    lakebase_database: str | None = Field(
+        default=None,
+        validation_alias="LAKEBASE_DATABASE_NAME",
+        description="Lakebase 資料庫名稱。",
+    )
+    lakebase_schema: str = Field(
+        default="azure_cost_mcp",
+        validation_alias="LAKEBASE_SCHEMA_NAME",
+        description="Lakebase schema 名稱。",
+    )
+    lakebase_host: str | None = Field(
+        default=None,
+        validation_alias="LAKEBASE_HOST",
+        description="Lakebase 主機位址（選填，動態模式下可自動推導）。",
+    )
+    azure_cost_tag_apply_batch_size: int = Field(
+        default=10,
+        ge=1,
+        le=100,
+        validation_alias="AZURE_COST_TAG_APPLY_BATCH_SIZE",
+        description="azure_cost_tag_apply 每批次最多同時更新的資源數量。",
+    )
+    azure_cost_tag_apply_delay_ms: int = Field(
+        default=250,
+        ge=0,
+        le=5000,
+        validation_alias="AZURE_COST_TAG_APPLY_DELAY_MS",
+        description="azure_cost_tag_apply 批次之間的等待毫秒數（避免觸發 API 速率限制）。",
+    )
+
+    @property
+    def azure_cost_required_tag_keys_list(self) -> list[str]:
+        """將逗號分隔的 required tag keys 解析為清單。"""
+        return [k.strip() for k in self.azure_cost_required_tag_keys.split(",") if k.strip()]
 
     @field_validator("mcp_streamable_http_path")
     @classmethod

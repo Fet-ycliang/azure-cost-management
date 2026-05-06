@@ -1,16 +1,21 @@
 from __future__ import annotations
 
 import asyncio
+import json
 
 from azure_cost_mcp.models import TrendGranularity
 from azure_cost_mcp.server import (
     _annotate_missing_tags,
     _build_connection_check,
     _build_optimization_hypotheses,
+    _build_tag_coverage_summary,
+    _compute_tag_diff,
     _detect_cost_field,
     _detect_currency,
     _detect_group_field,
     _format_check_error,
+    _format_diff_table,
+    _load_desired_files,
     _normalize_group_value,
     _normalize_reservation_recommendations,
     _normalize_savings_plan_recommendations,
@@ -263,3 +268,163 @@ def test_run_connection_checks_respects_sequence_and_statuses() -> None:
         "databricks_mcp",
     ]
     assert all(check["status"] == "ok" for check in checks)
+
+
+def test_build_tag_coverage_summary_computes_coverage() -> None:
+    resources = [
+        {"resourceGroup": "rg-a", "tags": {"cost_center": "eng"}},
+        {"resourceGroup": "rg-a", "tags": {}},
+        {"resourceGroup": "rg-b", "tags": {"cost_center": "ops", "Environment": "prod"}},
+    ]
+
+    result = _build_tag_coverage_summary(resources, ["cost_center", "Environment"])
+
+    assert result["tagged_count"] == 1
+    assert result["untagged_count"] == 2
+    assert result["coverage_pct"] == round(1 / 3 * 100, 1)
+
+    by_rg = {entry["resource_group"]: entry for entry in result["by_resource_group"]}
+    assert by_rg["rg-a"]["total"] == 2
+    assert by_rg["rg-a"]["tagged"] == 0
+    assert by_rg["rg-a"]["coverage_pct"] == 0.0
+    assert "cost_center" in by_rg["rg-a"]["top_missing_keys"]
+    assert by_rg["rg-b"]["tagged"] == 1
+    assert by_rg["rg-b"]["coverage_pct"] == 100.0
+
+
+def test_build_tag_coverage_summary_empty_resources() -> None:
+    result = _build_tag_coverage_summary([], ["cost_center"])
+
+    assert result["tagged_count"] == 0
+    assert result["untagged_count"] == 0
+    assert result["coverage_pct"] == 0.0
+    assert result["by_resource_group"] == []
+
+
+def test_compute_tag_diff_detects_added_and_modified() -> None:
+    entries = [
+        {
+            "resource_id": "/sub/rg/vm-1",
+            "name": "vm-1",
+            "type": "VirtualMachines",
+            "resource_group": "rg-1",
+            "subscription_id": "sub-a",
+            "current_tags": {"cost_center": "eng"},
+            "desired_tags": {"cost_center": "eng", "Environment": "prod"},
+        },
+        {
+            "resource_id": "/sub/rg/st-1",
+            "name": "st-1",
+            "type": "Storage",
+            "resource_group": "rg-1",
+            "subscription_id": "sub-a",
+            "current_tags": {"cost_center": "old"},
+            "desired_tags": {"cost_center": "eng"},
+        },
+    ]
+    diff = _compute_tag_diff(entries)
+    assert len(diff) == 2
+
+    vm1 = next(d for d in diff if d["name"] == "vm-1")
+    assert vm1["added"] == {"Environment": "prod"}
+    assert vm1["modified"] == {}
+    assert vm1["unchanged"] == {"cost_center": "eng"}
+
+    st1 = next(d for d in diff if d["name"] == "st-1")
+    assert st1["modified"] == {"cost_center": {"from": "old", "to": "eng"}}
+    assert st1["added"] == {}
+
+
+def test_compute_tag_diff_skips_already_correct() -> None:
+    entries = [
+        {
+            "resource_id": "/sub/rg/vm-ok",
+            "name": "vm-ok",
+            "type": "VirtualMachines",
+            "resource_group": "rg-1",
+            "subscription_id": "sub-a",
+            "current_tags": {"cost_center": "eng"},
+            "desired_tags": {"cost_center": "eng"},
+        }
+    ]
+    diff = _compute_tag_diff(entries)
+    assert diff == []
+
+
+def test_compute_tag_diff_ignores_empty_desired_values() -> None:
+    entries = [
+        {
+            "resource_id": "/sub/rg/vm-1",
+            "name": "vm-1",
+            "type": "VirtualMachines",
+            "resource_group": "rg-1",
+            "subscription_id": "sub-a",
+            "current_tags": {},
+            "desired_tags": {"cost_center": ""},
+        }
+    ]
+    diff = _compute_tag_diff(entries)
+    assert diff == []
+
+
+def test_format_diff_table_contains_expected_columns() -> None:
+    diff = [
+        {
+            "name": "vm-1",
+            "resource_group": "rg-1",
+            "subscription_id": "sub-a",
+            "added": {"Environment": "prod"},
+            "modified": {"cost_center": {"from": "old", "to": "eng"}},
+            "unchanged": {},
+        }
+    ]
+    table = _format_diff_table(diff)
+    assert "新增" in table
+    assert "修改" in table
+    assert "Environment" in table
+    assert "cost_center" in table
+
+
+def test_format_diff_table_empty() -> None:
+    assert _format_diff_table([]) == "（無需更新的資源）"
+
+
+def test_load_desired_files_reads_json(tmp_path) -> None:
+    desired_dir = tmp_path / "desired"
+    desired_dir.mkdir()
+    entries = [
+        {
+            "resource_id": "/sub/rg/vm-1",
+            "name": "vm-1",
+            "resource_group": "rg-1",
+            "subscription_id": "sub-a",
+            "current_tags": {},
+            "desired_tags": {"cost_center": "eng"},
+        }
+    ]
+    (desired_dir / "rg-1.json").write_text(json.dumps(entries), encoding="utf-8")
+
+    result = _load_desired_files(desired_dir)
+    assert len(result) == 1
+    assert result[0]["name"] == "vm-1"
+
+
+def test_load_desired_files_applies_rg_filter(tmp_path) -> None:
+    desired_dir = tmp_path / "desired"
+    desired_dir.mkdir()
+    entries = [
+        {"resource_id": "1", "name": "r1", "resource_group": "rg-a", "subscription_id": "sub-a",
+         "current_tags": {}, "desired_tags": {"k": "v"}},
+        {"resource_id": "2", "name": "r2", "resource_group": "rg-b", "subscription_id": "sub-a",
+         "current_tags": {}, "desired_tags": {"k": "v"}},
+    ]
+    (desired_dir / "rg.json").write_text(json.dumps(entries), encoding="utf-8")
+
+    result = _load_desired_files(desired_dir, rg_filter=["RG-A"])
+    assert len(result) == 1
+    assert result[0]["resource_group"] == "rg-a"
+
+
+def test_load_desired_files_returns_empty_for_missing_dir(tmp_path) -> None:
+    result = _load_desired_files(tmp_path / "nonexistent")
+    assert result == []

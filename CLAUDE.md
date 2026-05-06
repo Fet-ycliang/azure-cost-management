@@ -80,6 +80,24 @@
 - **datasource 過濾**：`rag_develop_catalog` 同時含 m365 和 fabric，查詢時必加 `datasource='m365'` 或 `'fabric'`。
 - Genie space config 範例問題若出現 0 結果，可能是引用了已刪除欄位（view 欄位數量有優化）。
 
+## 開發踩坑規則（Epic 2–4 整合後更新）
+
+### 路徑慣例
+- **`.cache/`** 是 gitignored 的暫存目錄；可執行腳本必須放在 **`scripts/`**（repo 根目錄），不要放進 `.cache/`。
+
+### server.py import 順序
+- **在 `server.py` 的 import list 新增 model class 之前，必須先在 `models.py` 定義好**。`server.py` 的 module-level import 若引用不存在的 class，整個 server 模組會無法 import，導致所有 MCP tool 都掛掉。
+
+### uv 依賴安裝
+- **`uv sync`** 只安裝核心依賴，不安裝 optional dependency groups。
+- 執行測試前需明確執行 **`uv sync --group test`**；安裝 lakebase 相關依賴需 **`uv sync --group lakebase`**。
+- `[dependency-groups].test` 中需包含 `sqlalchemy[asyncio]>=2.0`，否則 ORM model 的 import 在測試時會失敗（即使不執行真實 DB 操作）。
+
+### LakebaseClient 初始化
+- **`create_mcp_server()` 是同步函數**，不能在其中 `await client.init()`。應採「懶初始化」：在每個需要 Lakebase 的 tool 內，先呼叫 `is_ready()`，若回傳 `False` 則 `await client.init()`，再執行操作。
+- **`init()` 不是冪等的**：重複呼叫會覆蓋 `_engine` 但不釋放舊的 engine 連線池。永遠用 `if not client.is_ready():` 守門。
+- 所有 Lakebase 呼叫都用 `try/except` 包住，失敗只 `logger.warning()`，不影響 MCP tool 的正常回傳。
+
 ## Windows 開發環境注意
 
 - **hooks 裡使用 jq**：Windows 上 jq 輸出會帶 `\r`（carriage return），pipe 取檔案路徑時需加 `| tr -d '\r'`，否則 Python 等工具會收到帶 `\r` 的路徑而報錯。

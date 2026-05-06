@@ -127,6 +127,20 @@ wheels = [
 ]
 
 [[package]]
+name = "alembic"
+version = "1.18.4"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+dependencies = [
+    { name = "mako" },
+    { name = "sqlalchemy" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/alembic/1.18.4/alembic-1.18.4.tar.gz", hash = "sha256:cb6e1fd84b6174ab8dbb2329f86d631ba9559dd78df550b57804d607672cedbc" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/alembic/1.18.4/alembic-1.18.4-py3-none-any.whl", hash = "sha256:a5ed4adcf6d8a4cb575f3d759f071b03cd6e5c7618eb796cb52497be25bfe19a" },
+]
+
+[[package]]
 name = "annotated-doc"
 version = "0.0.4"
 source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
@@ -155,6 +169,54 @@ dependencies = [
 sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/anyio/4.13.0/anyio-4.13.0.tar.gz", hash = "sha256:334b70e641fd2221c1505b3890c69882fe4a2df910cba14d97019b90b24439dc" }
 wheels = [
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/anyio/4.13.0/anyio-4.13.0-py3-none-any.whl", hash = "sha256:08b310f9e24a9594186fd75b4f73f4a4152069e3853f1ed8bfbf58369f4ad708" },
+]
+
+[[package]]
+name = "asyncpg"
+version = "0.31.0"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0.tar.gz", hash = "sha256:c989386c83940bfbd787180f2b1519415e2d3d6277a70d9d0f0145ac73500735" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:eee690960e8ab85063ba93af2ce128c0f52fd655fdff9fdb1a28df01329f031d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:2657204552b75f8288de08ca60faf4a99a65deef3a71d1467454123205a88fab" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:a429e842a3a4b4ea240ea52d7fe3f82d5149853249306f7ff166cb9948faa46c" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c0807be46c32c963ae40d329b3a686356e417f674c976c07fa49f1b30303f109" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:e5d5098f63beeae93512ee513d4c0c53dc12e9aa2b7a1af5a81cddf93fe4e4da" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:37fc6c00a814e18eef51833545d1891cac9aa69140598bb076b4cd29b3e010b9" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp311-cp311-win32.whl", hash = "sha256:5a4af56edf82a701aece93190cc4e094d2df7d33f6e915c222fb09efbb5afc24" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp311-cp311-win_amd64.whl", hash = "sha256:480c4befbdf079c14c9ca43c8c5e1fe8b6296c96f1f927158d4f1e750aacc047" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:b44c31e1efc1c15188ef183f287c728e2046abb1d26af4d20858215d50d91fad" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:0c89ccf741c067614c9b5fc7f1fc6f3b61ab05ae4aaa966e6fd6b93097c7d20d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:12b3b2e39dc5470abd5e98c8d3373e4b1d1234d9fbdedf538798b2c13c64460a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:aad7a33913fb8bcb5454313377cc330fbb19a0cd5faa7272407d8a0c4257b671" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:3df118d94f46d85b2e434fd62c84cb66d5834d5a890725fe625f498e72e4d5ec" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:bd5b6efff3c17c3202d4b37189969acf8927438a238c6257f66be3c426beba20" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp312-cp312-win32.whl", hash = "sha256:027eaa61361ec735926566f995d959ade4796f6a49d3bde17e5134b9964f9ba8" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp312-cp312-win_amd64.whl", hash = "sha256:72d6bdcbc93d608a1158f17932de2321f68b1a967a13e014998db87a72ed3186" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:c204fab1b91e08b0f47e90a75d1b3c62174dab21f670ad6c5d0f243a228f015b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:54a64f91839ba59008eccf7aad2e93d6e3de688d796f35803235ea1c4898ae1e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:c0e0822b1038dc7253b337b0f3f676cadc4ac31b126c5d42691c39691962e403" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:bef056aa502ee34204c161c72ca1f3c274917596877f825968368b2c33f585f4" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:0bfbcc5b7ffcd9b75ab1558f00db2ae07db9c80637ad1b2469c43df79d7a5ae2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:22bc525ebbdc24d1261ecbf6f504998244d4e3be1721784b5f64664d61fbe602" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp313-cp313-win32.whl", hash = "sha256:f890de5e1e4f7e14023619399a471ce4b71f5418cd67a51853b9910fdfa73696" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp313-cp313-win_amd64.whl", hash = "sha256:dc5f2fa9916f292e5c5c8b2ac2813763bcd7f58e130055b4ad8a0531314201ab" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:f6b56b91bb0ffc328c4e3ed113136cddd9deefdf5f79ab448598b9772831df44" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:334dec28cf20d7f5bb9e45b39546ddf247f8042a690bff9b9573d00086e69cb5" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:98cc158c53f46de7bb677fd20c417e264fc02b36d901cc2a43bd6cb0dc6dbfd2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:9322b563e2661a52e3cdbc93eed3be7748b289f792e0011cb2720d278b366ce2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:19857a358fc811d82227449b7ca40afb46e75b33eb8897240c3839dd8b744218" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:ba5f8886e850882ff2c2ace5732300e99193823e8107e2c53ef01c1ebfa1e85d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314-win32.whl", hash = "sha256:cea3a0b2a14f95834cee29432e4ddc399b95700eb1d51bbc5bfee8f31fa07b2b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314-win_amd64.whl", hash = "sha256:04d19392716af6b029411a0264d92093b6e5e8285ae97a39957b9a9c14ea72be" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:bdb957706da132e982cc6856bb2f7b740603472b54c3ebc77fe60ea3e57e1bd2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:6d11b198111a72f47154fa03b85799f9be63701e068b43f84ac25da0bda9cb31" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:18c83b03bc0d1b23e6230f5bf8d4f217dc9bc08644ce0502a9d91dc9e634a9c7" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e009abc333464ff18b8f6fd146addffd9aaf63e79aa3bb40ab7a4c332d0c5e9e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:3b1fbcb0e396a5ca435a8826a87e5c2c2cc0c8c68eb6fadf82168056b0e53a8c" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:8df714dba348efcc162d2adf02d213e5fab1bd9f557e1305633e851a61814a7a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314t-win32.whl", hash = "sha256:1b41f1afb1033f2b44f3234993b15096ddc9cd71b21a42dbd87fc6a57b43d65d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/asyncpg/0.31.0/asyncpg-0.31.0-cp314-cp314t-win_amd64.whl", hash = "sha256:bd4107bb7cdd0e9e65fae66a62afd3a249663b844fa34d479f6d5b3bef9c04c3" },
 ]
 
 [[package]]
@@ -193,9 +255,16 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+lakebase = [
+    { name = "alembic" },
+    { name = "asyncpg" },
+    { name = "pgvector" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+]
 test = [
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 
 [package.metadata]
@@ -209,9 +278,16 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+lakebase = [
+    { name = "alembic", specifier = ">=1.13" },
+    { name = "asyncpg", specifier = ">=0.30" },
+    { name = "pgvector", specifier = ">=0.3.6" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
+]
 test = [
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-cov", specifier = ">=5.0.0" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
 ]
 
 [[package]]
@@ -703,6 +779,63 @@ wheels = [
 ]
 
 [[package]]
+name = "greenlet"
+version = "3.5.0"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0.tar.gz", hash = "sha256:d419647372241bc68e957bf38d5c1f98852155e4146bd1e4121adea81f4f01e4" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-macosx_11_0_universal2.whl", hash = "sha256:8f1cc966c126639cd152fdaa52624d2655f492faa79e013fea161de3e6dda082" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:362624e6a8e5bca3b8233e45eef33903a100e9539a2b995c364d595dbc4018b3" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-manylinux_2_24_ppc64le.manylinux_2_28_ppc64le.whl", hash = "sha256:5ecd83806b0f4c2f53b1018e0005cd82269ea01d42befc0368730028d850ed1c" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-manylinux_2_24_s390x.manylinux_2_28_s390x.whl", hash = "sha256:fa94cb2288681e3a11645958f1871d48ee9211bd2f66628fdace505927d6e564" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0ff251e9a0279522e62f6176412869395a64ddf2b5c5f782ff609a8216a4e662" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-manylinux_2_39_riscv64.whl", hash = "sha256:64d6ac45f7271f48e45f67c95b54ef73534c52ec041fcda8edf520c6d811f4bc" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:6d874e79afd41a96e11ff4c5d0bc90a80973e476fda1c2c64985667397df432b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:0ed006e4b86c59de7467eb2601cd1b77b5a7d657d1ee55e30fe30d76451edba4" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-win_amd64.whl", hash = "sha256:703cb211b820dbffbbc55a16bfc6e4583a6e6e990f33a119d2cc8b83211119c8" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp311-cp311-win_arm64.whl", hash = "sha256:6c18dfb59c70f5a94acd271c72e90128c3c776e41e5f07767908c8c1b74ad339" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-macosx_11_0_universal2.whl", hash = "sha256:db2910d3c809444e0a20147361f343fe2798e106af8d9d8506f5305302655a9f" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:3ec9ea74e7268ace7f9aab1b1a4e730193fc661b39a993cd91c606c32d4a3628" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-manylinux_2_24_ppc64le.manylinux_2_28_ppc64le.whl", hash = "sha256:54d243512da35485fc7a6bf3c178fdda6327a9d6506fcdd62b1abd1e41b2927b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-manylinux_2_24_s390x.manylinux_2_28_s390x.whl", hash = "sha256:41353ec2ecedf7aa8f682753a41919f8718031a6edac46b8d3dc7ed9e1ceb136" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:9d280a7f5c331622c69f97eb167f33577ff2d1df282c41cd15907fc0a3ca198c" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-manylinux_2_39_riscv64.whl", hash = "sha256:58c1c374fe2b3d852f9b6b11a7dff4c85404e51b9a596fd9e89cf904eb09866d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:1eb67d5adefb5bd2e182d42678a328979a209e4e82eb93575708185d31d1f588" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:2628d6c86f6cb0cb45e0c3c54058bbec559f57eaae699447748cb3928150577e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-win_amd64.whl", hash = "sha256:d4d9f0624c775f2dfc56ba54d515a8c771044346852a918b405914f6b19d7fd8" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp312-cp312-win_arm64.whl", hash = "sha256:83ed9f27f1680b50e89f40f6df348a290ea234b249a4003d366663a12eab94f2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-macosx_11_0_universal2.whl", hash = "sha256:5a5ed18de6a0f6cc7087f1563f6bd93fc7df1c19165ca01e9bde5a5dc281d106" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:3a717fbc46d8a354fa675f7c1e813485b6ba3885f9bef0cd56e5ba27d758ff5b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-manylinux_2_24_ppc64le.manylinux_2_28_ppc64le.whl", hash = "sha256:ddc090c5c1792b10246a78e8c2163ebbe04cf877f9d785c230a7b27b39ad038e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-manylinux_2_24_s390x.manylinux_2_28_s390x.whl", hash = "sha256:4964101b8585c144cbda5532b1aa644255126c08a265dae90c16e7a0e63aaa9d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2094acd54b272cb6eae8c03dd87b3fa1820a4cef18d6889c378d503500a1dc13" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-manylinux_2_39_riscv64.whl", hash = "sha256:7022615368890680e67b9965d33f5773aade330d5343bbe25560135aaa849eae" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:5e05ba267789ea87b5a155cf0e810b1ab88bf18e9e8740813945ceb8ee4350ba" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:0ecec963079cd58cbd14723582384f11f166fd58883c15dcbfb342e0bc9b5846" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-win_amd64.whl", hash = "sha256:728d9667d8f2f586644b748dbd9bb67e50d6a9381767d1357714ea6825bb3bf5" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp313-cp313-win_arm64.whl", hash = "sha256:47422135b1d308c14b2c6e758beedb1acd33bb91679f5670edf77bf46244722b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-macosx_11_0_universal2.whl", hash = "sha256:f35807464c4c58c55f0d31dfa83c541a5615d825c2fe3d2b95360cf7c4e3c0a8" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:55fa7ea52771be44af0de27d8b80c02cd18c2c3cddde6c847ecebdf72418b6a1" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-manylinux_2_24_ppc64le.manylinux_2_28_ppc64le.whl", hash = "sha256:a97e4821aa710603f94de0da25f25096454d78ffdace5dc77f3a006bc01abba3" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-manylinux_2_24_s390x.manylinux_2_28_s390x.whl", hash = "sha256:bf2d8a80bec89ab46221ae45c5373d5ba0bd36c19aa8508e85c6cd7e5106cd37" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:8f52a464e4ed91780bdfbbdd2b97197f3accaa629b98c200f4dffada759f3ae7" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-manylinux_2_39_riscv64.whl", hash = "sha256:1bae92a1dd94c5f9d9493c3a212dd874c202442047cf96446412c862feca83a2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:762612baf1161ccb8437c0161c668a688223cba28e1bf038f4eb47b13e39ccdf" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:57a43c6079a89713522bc4bcb9f75070ecf5d3dbad7792bfe42239362cbf2a16" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-win_amd64.whl", hash = "sha256:3bc59be3945ae9750b9e7d45067d01ae3fe90ea5f9ade99239dabdd6e28a5033" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314-win_arm64.whl", hash = "sha256:a96fcee45e03fe30a62669fd16ab5c9d3c172660d3085605cb1e2d1280d3c988" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314t-macosx_11_0_universal2.whl", hash = "sha256:a10a732421ab4fec934783ce3e54763470d0181db6e3468f9103a275c3ed1853" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314t-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:7fc391b1566f2907d17aaebe78f8855dc45675159a775fcf9e61f8ee0078e87f" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314t-manylinux_2_24_ppc64le.manylinux_2_28_ppc64le.whl", hash = "sha256:680bd0e7ad5e8daa8a4aa89f68fd6adc834b8a8036dc256533f7e08f4a4b01f7" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314t-manylinux_2_24_s390x.manylinux_2_28_s390x.whl", hash = "sha256:1aa4ce8debcd4ea7fb2e150f3036588c41493d1d52c43538924ae1819003f4ce" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314t-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:ddb36c7d6c9c0a65f18c7258634e0c416c6ab59caac8c987b96f80c2ebda0112" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314t-manylinux_2_39_riscv64.whl", hash = "sha256:728a73687e39ae9ca34e4694cbf2f049d3fbc7174639468d0f67200a97d8f9e2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:e5ddf316ced87539144621453c3aef229575825fe60c604e62bedc4003f372b2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:4a448128607be0de65342dc9b31be7f948ef4cc0bc8832069350abefd310a8f2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/greenlet/3.5.0/greenlet-3.5.0-cp314-cp314t-win_amd64.whl", hash = "sha256:d60097128cb0a1cab9ea541186ea13cd7b847b8449a7787c2e2350da0cb82d86" },
+]
+
+[[package]]
 name = "h11"
 version = "0.16.0"
 source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
@@ -803,6 +936,18 @@ wheels = [
 ]
 
 [[package]]
+name = "mako"
+version = "1.3.12"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+dependencies = [
+    { name = "markupsafe" },
+]
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/mako/1.3.12/mako-1.3.12.tar.gz", hash = "sha256:9f778e93289bd410bb35daadeb4fc66d95a746f0b75777b942088b7fd7af550a" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/mako/1.3.12/mako-1.3.12-py3-none-any.whl", hash = "sha256:8f61569480282dbf557145ce441e4ba888be453c30989f879f0d652e39f53ea9" },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "4.0.0"
 source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
@@ -812,6 +957,80 @@ dependencies = [
 sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markdown-it-py/4.0.0/markdown_it_py-4.0.0.tar.gz", hash = "sha256:cb0a2b4aa34f932c007117b194e945bd74e0ec24133ceb5bac59009cda1cb9f3" }
 wheels = [
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markdown-it-py/4.0.0/markdown_it_py-4.0.0-py3-none-any.whl", hash = "sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147" },
+]
+
+[[package]]
+name = "markupsafe"
+version = "3.0.3"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3.tar.gz", hash = "sha256:722695808f4b6457b320fdc131280796bdceb04ab50fe1795cd540799ebe1698" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:1cc7ea17a6824959616c525620e387f6dd30fec8cb44f649e31712db02123dad" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4bd4cd07944443f5a265608cc6aab442e4f74dff8088b0dfc8238647b8f6ae9a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:6b5420a1d9450023228968e7e6a9ce57f65d148ab56d2313fcd589eee96a7a50" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0bf2a864d67e76e5c9a34dc26ec616a66b9888e25e7b9460e1c76d3293bd9dbf" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:bc51efed119bc9cfdf792cdeaa4d67e8f6fcccab66ed4bfdd6bde3e59bfcbb2f" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:068f375c472b3e7acbe2d5318dea141359e6900156b5b2ba06a30b169086b91a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-musllinux_1_2_riscv64.whl", hash = "sha256:7be7b61bb172e1ed687f1754f8e7484f1c8019780f6f6b0786e76bb01c2ae115" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:f9e130248f4462aaa8e2552d547f36ddadbeaa573879158d721bbd33dfe4743a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-win32.whl", hash = "sha256:0db14f5dafddbb6d9208827849fad01f1a2609380add406671a26386cdf15a19" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-win_amd64.whl", hash = "sha256:de8a88e63464af587c950061a5e6a67d3632e36df62b986892331d4620a35c01" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp311-cp311-win_arm64.whl", hash = "sha256:3b562dd9e9ea93f13d53989d23a7e775fdfd1066c33494ff43f5418bc8c58a5c" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:d53197da72cc091b024dd97249dfc7794d6a56530370992a5e1a08983ad9230e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:1872df69a4de6aead3491198eaf13810b565bdbeec3ae2dc8780f14458ec73ce" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:3a7e8ae81ae39e62a41ec302f972ba6ae23a5c5396c8e60113e9066ef893da0d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d6dd0be5b5b189d31db7cda48b91d7e0a9795f31430b7f271219ab30f1d3ac9d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:94c6f0bb423f739146aec64595853541634bde58b2135f27f61c1ffd1cd4d16a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:be8813b57049a7dc738189df53d69395eba14fb99345e0a5994914a3864c8a4b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-musllinux_1_2_riscv64.whl", hash = "sha256:83891d0e9fb81a825d9a6d61e3f07550ca70a076484292a70fde82c4b807286f" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:77f0643abe7495da77fb436f50f8dab76dbc6e5fd25d39589a0f1fe6548bfa2b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-win32.whl", hash = "sha256:d88b440e37a16e651bda4c7c2b930eb586fd15ca7406cb39e211fcff3bf3017d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-win_amd64.whl", hash = "sha256:26a5784ded40c9e318cfc2bdb30fe164bdb8665ded9cd64d500a34fb42067b1c" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp312-cp312-win_arm64.whl", hash = "sha256:35add3b638a5d900e807944a078b51922212fb3dedb01633a8defc4b01a3c85f" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:e1cf1972137e83c5d4c136c43ced9ac51d0e124706ee1c8aa8532c1287fa8795" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:116bb52f642a37c115f517494ea5feb03889e04df47eeff5b130b1808ce7c219" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:133a43e73a802c5562be9bbcd03d090aa5a1fe899db609c29e8c8d815c5f6de6" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:ccfcd093f13f0f0b7fdd0f198b90053bf7b2f02a3927a30e63f3ccc9df56b676" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:509fa21c6deb7a7a273d629cf5ec029bc209d1a51178615ddf718f5918992ab9" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:a4afe79fb3de0b7097d81da19090f4df4f8d3a2b3adaa8764138aac2e44f3af1" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-musllinux_1_2_riscv64.whl", hash = "sha256:795e7751525cae078558e679d646ae45574b47ed6e7771863fcc079a6171a0fc" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:8485f406a96febb5140bfeca44a73e3ce5116b2501ac54fe953e488fb1d03b12" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-win32.whl", hash = "sha256:bdd37121970bfd8be76c5fb069c7751683bdf373db1ed6c010162b2a130248ed" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-win_amd64.whl", hash = "sha256:9a1abfdc021a164803f4d485104931fb8f8c1efd55bc6b748d2f5774e78b62c5" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313-win_arm64.whl", hash = "sha256:7e68f88e5b8799aa49c85cd116c932a1ac15caaa3f5db09087854d218359e485" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-macosx_10_13_x86_64.whl", hash = "sha256:218551f6df4868a8d527e3062d0fb968682fe92054e89978594c28e642c43a73" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:3524b778fe5cfb3452a09d31e7b5adefeea8c5be1d43c4f810ba09f2ceb29d37" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:4e885a3d1efa2eadc93c894a21770e4bc67899e3543680313b09f139e149ab19" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:8709b08f4a89aa7586de0aadc8da56180242ee0ada3999749b183aa23df95025" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:b8512a91625c9b3da6f127803b166b629725e68af71f8184ae7e7d54686a56d6" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:9b79b7a16f7fedff2495d684f2b59b0457c3b493778c9eed31111be64d58279f" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-musllinux_1_2_riscv64.whl", hash = "sha256:12c63dfb4a98206f045aa9563db46507995f7ef6d83b2f68eda65c307c6829eb" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:8f71bc33915be5186016f675cd83a1e08523649b0e33efdb898db577ef5bb009" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-win32.whl", hash = "sha256:69c0b73548bc525c8cb9a251cddf1931d1db4d2258e9599c28c07ef3580ef354" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-win_amd64.whl", hash = "sha256:1b4b79e8ebf6b55351f0d91fe80f893b4743f104bff22e90697db1590e47a218" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp313-cp313t-win_arm64.whl", hash = "sha256:ad2cf8aa28b8c020ab2fc8287b0f823d0a7d8630784c31e9ee5edea20f406287" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-macosx_10_13_x86_64.whl", hash = "sha256:eaa9599de571d72e2daf60164784109f19978b327a3910d3e9de8c97b5b70cfe" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:c47a551199eb8eb2121d4f0f15ae0f923d31350ab9280078d1e5f12b249e0026" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:f34c41761022dd093b4b6896d4810782ffbabe30f2d443ff5f083e0cbbb8c737" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:457a69a9577064c05a97c41f4e65148652db078a3a509039e64d3467b9e7ef97" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:e8afc3f2ccfa24215f8cb28dcf43f0113ac3c37c2f0f0806d8c70e4228c5cf4d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:ec15a59cf5af7be74194f7ab02d0f59a62bdcf1a537677ce67a2537c9b87fcda" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-musllinux_1_2_riscv64.whl", hash = "sha256:0eb9ff8191e8498cca014656ae6b8d61f39da5f95b488805da4bb029cccbfbaf" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:2713baf880df847f2bece4230d4d094280f4e67b1e813eec43b4c0e144a34ffe" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-win32.whl", hash = "sha256:729586769a26dbceff69f7a7dbbf59ab6572b99d94576a5592625d5b411576b9" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-win_amd64.whl", hash = "sha256:bdc919ead48f234740ad807933cdf545180bfbe9342c2bb451556db2ed958581" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314-win_arm64.whl", hash = "sha256:5a7d5dc5140555cf21a6fefbdbf8723f06fcd2f63ef108f2854de715e4422cb4" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-macosx_10_13_x86_64.whl", hash = "sha256:1353ef0c1b138e1907ae78e2f6c63ff67501122006b0f9abad68fda5f4ffc6ab" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:1085e7fbddd3be5f89cc898938f42c0b3c711fdcb37d75221de2666af647c175" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:1b52b4fb9df4eb9ae465f8d0c228a00624de2334f216f178a995ccdcf82c4634" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:fed51ac40f757d41b7c48425901843666a6677e3e8eb0abcff09e4ba6e664f50" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:f190daf01f13c72eac4efd5c430a8de82489d9cff23c364c3ea822545032993e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:e56b7d45a839a697b5eb268c82a71bd8c7f6c94d6fd50c3d577fa39a9f1409f5" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-musllinux_1_2_riscv64.whl", hash = "sha256:f3e98bb3798ead92273dc0e5fd0f31ade220f59a266ffd8a4f6065e0a3ce0523" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:5678211cb9333a6468fb8d8be0305520aa073f50d17f089b5b4b477ea6e67fdc" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-win32.whl", hash = "sha256:915c04ba3851909ce68ccc2b8e2cd691618c4dc4c4232fb7982bca3f41fd8c3d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-win_amd64.whl", hash = "sha256:4faffd047e07c38848ce017e8725090413cd80cbc23d86e55c587bf979e579c9" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/markupsafe/3.0.3/markupsafe-3.0.3-cp314-cp314t-win_arm64.whl", hash = "sha256:32001d6a8fc98c8cb5c947787c5d08b0a50663d139f1305bac5885d98d9b40fa" },
 ]
 
 [[package]]
@@ -998,12 +1217,103 @@ wheels = [
 ]
 
 [[package]]
+name = "numpy"
+version = "2.4.4"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4.tar.gz", hash = "sha256:2d390634c5182175533585cc89f3608a4682ccb173cc9bb940b2881c8d6f8fa0" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:f983334aea213c99992053ede6168500e5f086ce74fbc4acc3f2b00f5762e9db" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:72944b19f2324114e9dc86a159787333b77874143efcf89a5167ef83cfee8af0" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:86b6f55f5a352b48d7fbfd2dbc3d5b780b2d79f4d3c121f33eb6efb22e9a2015" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-macosx_14_0_x86_64.whl", hash = "sha256:ba1f4fc670ed79f876f70082eff4f9583c15fb9a4b89d6188412de4d18ae2f40" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:8a87ec22c87be071b6bdbd27920b129b94f2fc964358ce38f3822635a3e2e03d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:df3775294accfdd75f32c74ae39fcba920c9a378a2fc18a12b6820aa8c1fb502" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:0d4e437e295f18ec29bc79daf55e8a47a9113df44d66f702f02a293d93a2d6dd" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:6aa3236c78803afbcb255045fbef97a9e25a1f6c9888357d205ddc42f4d6eba5" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-win32.whl", hash = "sha256:30caa73029a225b2d40d9fae193e008e24b2026b7ee1a867b7ee8d96ca1a448e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-win_amd64.whl", hash = "sha256:6bbe4eb67390b0a0265a2c25458f6b90a409d5d069f1041e6aff1e27e3d9a79e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp311-cp311-win_arm64.whl", hash = "sha256:fcfe2045fd2e8f3cb0ce9d4ba6dba6333b8fa05bb8a4939c908cd43322d14c7e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:15716cfef24d3a9762e3acdf87e27f58dc823d1348f765bbea6bef8c639bfa1b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:23cbfd4c17357c81021f21540da84ee282b9c8fba38a03b7b9d09ba6b951421e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:8b3b60bb7cba2c8c81837661c488637eee696f59a877788a396d33150c35d842" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-macosx_14_0_x86_64.whl", hash = "sha256:e4a010c27ff6f210ff4c6ef34394cd61470d01014439b192ec22552ee867f2a8" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:f9e75681b59ddaa5e659898085ae0eaea229d054f2ac0c7e563a62205a700121" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:81f4a14bee47aec54f883e0cad2d73986640c1590eb9bfaaba7ad17394481e6e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:62d6b0f03b694173f9fcb1fb317f7222fd0b0b103e784c6549f5e53a27718c44" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:fbc356aae7adf9e6336d336b9c8111d390a05df88f1805573ebb0807bd06fd1d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-win32.whl", hash = "sha256:0d35aea54ad1d420c812bfa0385c71cd7cc5bcf7c65fed95fc2cd02fe8c79827" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-win_amd64.whl", hash = "sha256:b5f0362dc928a6ecd9db58868fca5e48485205e3855957bdedea308f8672ea4a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp312-cp312-win_arm64.whl", hash = "sha256:846300f379b5b12cc769334464656bc882e0735d27d9726568bc932fdc49d5ec" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:08f2e31ed5e6f04b118e49821397f12767934cfdd12a1ce86a058f91e004ee50" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:e823b8b6edc81e747526f70f71a9c0a07ac4e7ad13020aa736bb7c9d67196115" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:4a19d9dba1a76618dd86b164d608566f393f8ec6ac7c44f0cc879011c45e65af" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-macosx_14_0_x86_64.whl", hash = "sha256:d2a8490669bfe99a233298348acc2d824d496dee0e66e31b66a6022c2ad74a5c" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:45dbed2ab436a9e826e302fcdcbe9133f9b0006e5af7168afb8963a6520da103" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c901b15172510173f5cb310eae652908340f8dede90fff9e3bf6c0d8dfd92f83" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:99d838547ace2c4aace6c4f76e879ddfe02bb58a80c1549928477862b7a6d6ed" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:0aec54fd785890ecca25a6003fd9a5aed47ad607bbac5cd64f836ad8666f4959" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-win32.whl", hash = "sha256:07077278157d02f65c43b1b26a3886bce886f95d20aabd11f87932750dfb14ed" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-win_amd64.whl", hash = "sha256:5c70f1cc1c4efbe316a572e2d8b9b9cc44e89b95f79ca3331553fbb63716e2bf" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313-win_arm64.whl", hash = "sha256:ef4059d6e5152fa1a39f888e344c73fdc926e1b2dd58c771d67b0acfbf2aa67d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:4bbc7f303d125971f60ec0aaad5e12c62d0d2c925f0ab1273debd0e4ba37aba5" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-macosx_14_0_arm64.whl", hash = "sha256:4d6d57903571f86180eb98f8f0c839fa9ebbfb031356d87f1361be91e433f5b7" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-macosx_14_0_x86_64.whl", hash = "sha256:4636de7fd195197b7535f231b5de9e4b36d2c440b6e566d2e4e4746e6af0ca93" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:ad2e2ef14e0b04e544ea2fa0a36463f847f113d314aa02e5b402fdf910ef309e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5a285b3b96f951841799528cd1f4f01cd70e7e0204b4abebac9463eecfcf2a40" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:f8474c4241bc18b750be2abea9d7a9ec84f46ef861dbacf86a4f6e043401f79e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:4e874c976154687c1f71715b034739b45c7711bec81db01914770373d125e392" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-win32.whl", hash = "sha256:9c585a1790d5436a5374bac930dad6ed244c046ed91b2b2a3634eb2971d21008" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-win_amd64.whl", hash = "sha256:93e15038125dc1e5345d9b5b68aa7f996ec33b98118d18c6ca0d0b7d6198b7e8" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp313-cp313t-win_arm64.whl", hash = "sha256:0dfd3f9d3adbe2920b68b5cd3d51444e13a10792ec7154cd0a2f6e74d4ab3233" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:f169b9a863d34f5d11b8698ead99febeaa17a13ca044961aa8e2662a6c7766a0" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:2483e4584a1cb3092da4470b38866634bafb223cbcd551ee047633fd2584599a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-macosx_14_0_arm64.whl", hash = "sha256:2d19e6e2095506d1736b7d80595e0f252d76b89f5e715c35e06e937679ea7d7a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-macosx_14_0_x86_64.whl", hash = "sha256:6a246d5914aa1c820c9443ddcee9c02bec3e203b0c080349533fae17727dfd1b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:989824e9faf85f96ec9c7761cd8d29c531ad857bfa1daa930cba85baaecf1a9a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:27a8d92cd10f1382a67d7cf4db7ce18341b66438bdd9f691d7b0e48d104c2a9d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:e44319a2953c738205bf3354537979eaa3998ed673395b964c1176083dd46252" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:e892aff75639bbef0d2a2cfd55535510df26ff92f63c92cd84ef8d4ba5a5557f" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-win32.whl", hash = "sha256:1378871da56ca8943c2ba674530924bb8ca40cd228358a3b5f302ad60cf875fc" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-win_amd64.whl", hash = "sha256:715d1c092715954784bc79e1174fc2a90093dc4dc84ea15eb14dad8abdcdeb74" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314-win_arm64.whl", hash = "sha256:2c194dd721e54ecad9ad387c1d35e63dce5c4450c6dc7dd5611283dda239aabb" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:2aa0613a5177c264ff5921051a5719d20095ea586ca88cc802c5c218d1c67d3e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-macosx_14_0_arm64.whl", hash = "sha256:42c16925aa5a02362f986765f9ebabf20de75cdefdca827d14315c568dcab113" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-macosx_14_0_x86_64.whl", hash = "sha256:874f200b2a981c647340f841730fc3a2b54c9d940566a3c4149099591e2c4c3d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:c9b39d38a9bd2ae1becd7eac1303d031c5c110ad31f2b319c6e7d98b135c934d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b268594bccac7d7cf5844c7732e3f20c50921d94e36d7ec9b79e9857694b1b2f" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:ac6b31e35612a26483e20750126d30d0941f949426974cace8e6b5c58a3657b0" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:8e3ed142f2728df44263aaf5fb1f5b0b99f4070c553a0d7f033be65338329150" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-win32.whl", hash = "sha256:dddbbd259598d7240b18c9d87c56a9d2fb3b02fe266f49a7c101532e78c1d871" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-win_amd64.whl", hash = "sha256:a7164afb23be6e37ad90b2f10426149fd75aee07ca55653d2aa41e66c4ef697e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-cp314-cp314t-win_arm64.whl", hash = "sha256:ba203255017337d39f89bdd58417f03c4426f12beed0440cfd933cb15f8669c7" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-pp311-pypy311_pp73-macosx_10_15_x86_64.whl", hash = "sha256:58c8b5929fcb8287cbd6f0a3fae19c6e03a5c48402ae792962ac465224a629a4" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-pp311-pypy311_pp73-macosx_11_0_arm64.whl", hash = "sha256:eea7ac5d2dce4189771cedb559c738a71512768210dc4e4753b107a2048b3d0e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-pp311-pypy311_pp73-macosx_14_0_arm64.whl", hash = "sha256:51fc224f7ca4d92656d5a5eb315f12eb5fe2c97a66249aa7b5f562528a3be38c" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-pp311-pypy311_pp73-macosx_14_0_x86_64.whl", hash = "sha256:28a650663f7314afc3e6ec620f44f333c386aad9f6fc472030865dc0ebb26ee3" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-pp311-pypy311_pp73-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:19710a9ca9992d7174e9c52f643d4272dcd1558c5f7af7f6f8190f633bd651a7" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-pp311-pypy311_pp73-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:9b2aec6af35c113b05695ebb5749a787acd63cafc83086a05771d1e1cd1e555f" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/numpy/2.4.4/numpy-2.4.4-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:f2cf083b324a467e1ab358c105f6cad5ea950f50524668a80c486ff1db24e119" },
+]
+
+[[package]]
 name = "packaging"
 version = "26.2"
 source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
 sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/packaging/26.2/packaging-26.2.tar.gz", hash = "sha256:ff452ff5a3e828ce110190feff1178bb1f2ea2281fa2075aadb987c2fb221661" }
 wheels = [
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/packaging/26.2/packaging-26.2-py3-none-any.whl", hash = "sha256:5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e" },
+]
+
+[[package]]
+name = "pgvector"
+version = "0.4.2"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/pgvector/0.4.2/pgvector-0.4.2.tar.gz", hash = "sha256:322cac0c1dc5d41c9ecf782bd9991b7966685dee3a00bc873631391ed949513a" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/pgvector/0.4.2/pgvector-0.4.2-py3-none-any.whl", hash = "sha256:549d45f7a18593783d5eec609ea1684a724ba8405c4cb182a0b2b08aeff04e08" },
 ]
 
 [[package]]
@@ -1501,6 +1811,64 @@ source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-p
 sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/shellingham/1.5.4/shellingham-1.5.4.tar.gz", hash = "sha256:8dbca0739d487e5bd35ab3ca4b36e11c4078f3a234bfce294b0a0291363404de" }
 wheels = [
     { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/shellingham/1.5.4/shellingham-1.5.4-py2.py3-none-any.whl", hash = "sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686" },
+]
+
+[[package]]
+name = "sqlalchemy"
+version = "2.0.49"
+source = { registry = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/simple" }
+dependencies = [
+    { name = "greenlet", marker = "platform_machine == 'AMD64' or platform_machine == 'WIN32' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'ppc64le' or platform_machine == 'win32' or platform_machine == 'x86_64'" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49.tar.gz", hash = "sha256:d15950a57a210e36dd4cec1aac22787e2a4d57ba9318233e2ef8b2daf9ff2d5f" }
+wheels = [
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:c5070135e1b7409c4161133aa525419b0062088ed77c92b1da95366ec5cbebbe" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:9ac7a3e245fd0310fd31495eb61af772e637bdf7d88ee81e7f10a3f271bff014" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:4d4e5a0ceba319942fa6b585cf82539288a61e314ef006c1209f734551ab9536" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:3ddcb27fb39171de36e207600116ac9dfd4ae46f86c82a9bf3934043e80ebb88" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:32fe6a41ad97302db2931f05bb91abbcc65b5ce4c675cd44b972428dd2947700" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp311-cp311-win32.whl", hash = "sha256:46d51518d53edfbe0563662c96954dc8fcace9832332b914375f45a99b77cc9a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp311-cp311-win_amd64.whl", hash = "sha256:951d4a210744813be63019f3df343bf233b7432aadf0db54c75802247330d3af" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4bbccb45260e4ff1b7db0be80a9025bb1e6698bdb808b83fff0000f7a90b2c0b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:fb37f15714ec2652d574f021d479e78cd4eb9d04396dca36568fdfffb3487982" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3bb9ec6436a820a4c006aad1ac351f12de2f2dbdaad171692ee457a02429b672" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:8d6efc136f44a7e8bc8088507eaabbb8c2b55b3dbb63fe102c690da0ddebe55e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:e06e617e3d4fd9e51d385dfe45b077a41e9d1b033a7702551e3278ac597dc750" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp312-cp312-win32.whl", hash = "sha256:83101a6930332b87653886c01d1ee7e294b1fe46a07dd9a2d2b4f91bcc88eec0" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp312-cp312-win_amd64.whl", hash = "sha256:618a308215b6cececb6240b9abde545e3acdabac7ae3e1d4e666896bf5ba44b4" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:df2d441bacf97022e81ad047e1597552eb3f83ca8a8f1a1fdd43cd7fe3898120" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:8e20e511dc15265fb433571391ba313e10dd8ea7e509d51686a51313b4ac01a2" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:47604cb2159f8bbd5a1ab48a714557156320f20871ee64d550d8bf2683d980d3" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:22d8798819f86720bc646ab015baff5ea4c971d68121cb36e2ebc2ee43ead2b7" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:9b1c058c171b739e7c330760044803099c7fff11511e3ab3573e5327116a9c33" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313-win32.whl", hash = "sha256:a143af2ea6672f2af3f44ed8f9cd020e9cc34c56f0e8db12019d5d9ecf41cb3b" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313-win_amd64.whl", hash = "sha256:12b04d1db2663b421fe072d638a138460a51d5a862403295671c4f3987fb9148" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:24bd94bb301ec672d8f0623eba9226cc90d775d25a0c92b5f8e4965d7f3a1518" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:a51d3db74ba489266ef55c7a4534eb0b8db9a326553df481c11e5d7660c8364d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:55250fe61d6ebfd6934a272ee16ef1244e0f16b7af6cd18ab5b1fc9f08631db0" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:46796877b47034b559a593d7e4b549aba151dae73f9e78212a3478161c12ab08" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313t-win32.whl", hash = "sha256:9c4969a86e41454f2858256c39bdfb966a20961e9b58bf8749b65abf447e9a8d" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp313-cp313t-win_amd64.whl", hash = "sha256:b9870d15ef00e4d0559ae10ee5bc71b654d1f20076dbe8bc7ed19b4c0625ceba" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:233088b4b99ebcbc5258c755a097aa52fbf90727a03a5a80781c4b9c54347a2e" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:57ca426a48eb2c682dae8204cd89ea8ab7031e2675120a47924fabc7caacbc2a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:685e93e9c8f399b0c96a624799820176312f5ceef958c0f88215af4013d29066" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:9e0400fa22f79acc334d9a6b185dc00a44a8e6578aa7e12d0ddcd8434152b187" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:a05977bffe9bffd2229f477fa75eabe3192b1b05f408961d1bebff8d1cd4d401" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314-win32.whl", hash = "sha256:0f2fa354ba106eafff2c14b0cc51f22801d1e8b2e4149342023bd6f0955de5f5" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314-win_amd64.whl", hash = "sha256:77641d299179c37b89cf2343ca9972c88bb6eef0d5fc504a2f86afd15cd5adf5" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:c1dc3368794d522f43914e03312202523cc89692f5389c32bea0233924f8d977" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7c821c47ecfe05cc32140dcf8dc6fd5d21971c86dbd56eabfe5ba07a64910c01" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:9c04bff9a5335eb95c6ecf1c117576a0aa560def274876fd156cfe5510fccc61" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:7f605a456948c35260e7b2a39f8952a26f077fd25653c37740ed186b90aaa68a" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314t-win32.whl", hash = "sha256:6270d717b11c5476b0cbb21eedc8d4dbb7d1a956fd6c15a23e96f197a6193158" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-cp314-cp314t-win_amd64.whl", hash = "sha256:275424295f4256fd301744b8f335cff367825d270f155d522b30c7bf49903ee7" },
+    { url = "https://nexus01p.fareastone.com.tw:8081/repository/pypi-proxy/packages/sqlalchemy/2.0.49/sqlalchemy-2.0.49-py3-none-any.whl", hash = "sha256:ec44cfa7ef1a728e88ad41674de50f6db8cfdb3e2af84af86e0041aaf02d43d0" },
+]
+
+[package.optional-dependencies]
+asyncio = [
+    { name = "greenlet" },
 ]
 
 [[package]]

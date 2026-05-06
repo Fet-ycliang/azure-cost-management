@@ -58,6 +58,27 @@ class AzureManagementApiClient:
 
         return response.json()
 
+    async def patch_resource_tags(
+        self,
+        resource_id: str,
+        *,
+        tags: dict[str, str],
+        api_version: str = "2021-04-01",
+    ) -> dict[str, Any] | None:
+        """以 Merge 語意更新資源 tags（不刪除未指定的現有 tag）。"""
+        url = f"{resource_id}/providers/Microsoft.Resources/tags/default"
+        body = {
+            "operation": "Merge",
+            "properties": {"tags": tags},
+        }
+        return await self._request(
+            "PATCH",
+            url,
+            params={"api-version": api_version},
+            json_body=body,
+            expected_statuses=(200,),
+        )
+
     @staticmethod
     def _format_error(response: httpx.Response) -> str:
         message = response.text

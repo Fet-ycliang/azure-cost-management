@@ -2,19 +2,26 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
 from collections import Counter
 from datetime import date, datetime
+from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 import httpx
 from azure.core.exceptions import AzureError
 from mcp.server.fastmcp import FastMCP
 
-from .azure_management import AzureManagementApiError
+from .azure_management import AzureManagementApiClient, AzureManagementApiError
 from .config import Settings, get_settings
 from .cost_management import CostManagementClient
 from .databricks_mcp import DatabricksMcpClient, DatabricksMcpClientError
 from .formatting import to_response
+from .lakebase import LakebaseClient
 from .models import (
     ConnectionValidationParams,
     CostTrendParams,
@@ -24,6 +31,10 @@ from .models import (
     ResponseOptions,
     SavingsRecommendationParams,
     StorageExportsParams,
+    TagApplyParams,
+    TagDiffParams,
+    TagInventoryParams,
+    TagSuggestParams,
     TrendGranularity,
     UntaggedResourcesParams,
 )
@@ -55,6 +66,10 @@ IMPLEMENTED_TOOLS = [
     "azure_cost_databricks_query",
     "azure_cost_untagged_resources",
     "azure_cost_list_storage_exports",
+    "azure_cost_tag_inventory",
+    "azure_cost_tag_diff",
+    "azure_cost_tag_apply",
+    "azure_cost_tag_suggest",
 ]
 
 def _to_float(value: Any) -> float:
@@ -197,6 +212,153 @@ def _summarize_missing_tags(resources: list[dict[str, Any]]) -> dict[str, Any]:
         "resource_count": len(resources),
         "counts_by_type": dict(by_type.most_common()),
         "counts_by_missing_tag": dict(by_tag.most_common()),
+    }
+
+
+def _load_desired_files(
+    desired_dir: Path,
+    rg_filter: list[str] | None = None,
+    subscription_filter: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """讀取 desired tags JSON 目錄，回傳扁平化條目清單。"""
+    if not desired_dir.is_dir():
+        return []
+    entries: list[dict[str, Any]] = []
+    rg_lower = {r.lower() for r in rg_filter} if rg_filter else None
+    for json_file in sorted(desired_dir.glob("*.json")):
+        try:
+            data = json.loads(json_file.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(data, list):
+            continue
+        for entry in data:
+            if rg_lower and (entry.get("resource_group") or "").lower() not in rg_lower:
+                continue
+            if subscription_filter and entry.get("subscription_id") not in subscription_filter:
+                continue
+            entries.append(entry)
+    return entries
+
+
+def _compute_tag_diff(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """計算 desired vs current 的 tag diff（merge 語意：只計算新增與修改）。"""
+    result: list[dict[str, Any]] = []
+    for entry in entries:
+        current: dict[str, str] = {k: str(v or "") for k, v in (entry.get("current_tags") or {}).items()}
+        desired: dict[str, str] = {k: str(v or "") for k, v in (entry.get("desired_tags") or {}).items()}
+
+        added: dict[str, str] = {}
+        modified: dict[str, dict[str, str]] = {}
+        unchanged: dict[str, str] = {}
+
+        for key, dval in desired.items():
+            dval = dval.strip()
+            cval = current.get(key, "").strip()
+            if not dval:
+                continue
+            if not cval:
+                added[key] = dval
+            elif cval != dval:
+                modified[key] = {"from": cval, "to": dval}
+            else:
+                unchanged[key] = dval
+
+        if added or modified:
+            result.append(
+                {
+                    "resource_id": entry.get("resource_id", ""),
+                    "name": entry.get("name", ""),
+                    "type": entry.get("type", ""),
+                    "resource_group": entry.get("resource_group", ""),
+                    "subscription_id": entry.get("subscription_id", ""),
+                    "added": added,
+                    "modified": modified,
+                    "unchanged": unchanged,
+                }
+            )
+    return result
+
+
+def _format_diff_table(diff_entries: list[dict[str, Any]]) -> str:
+    """把 diff 條目轉成 Markdown 表格字串。"""
+    if not diff_entries:
+        return "（無需更新的資源）"
+
+    lines = [
+        "| 資源名稱 | RG | 訂閱 | Tag Key | 動作 | 目前值 | 期望值 |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for entry in diff_entries:
+        name = entry["name"]
+        rg = entry["resource_group"]
+        sub = entry["subscription_id"]
+        for key, val in entry["added"].items():
+            lines.append(f"| {name} | {rg} | {sub} | `{key}` | 新增 | （空） | {val} |")
+        for key, change in entry["modified"].items():
+            lines.append(f"| {name} | {rg} | {sub} | `{key}` | 修改 | {change['from']} | {change['to']} |")
+    return "\n".join(lines)
+
+
+def _write_json_cache(path: Path, payload: dict[str, Any]) -> None:
+    """同步寫入 JSON 快取檔案（供 asyncio.to_thread 使用）。"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, default=str),
+        encoding="utf-8",
+    )
+
+
+def _build_tag_coverage_summary(
+    resources: list[dict[str, Any]],
+    required_keys: list[str],
+) -> dict[str, Any]:
+    """計算 tag 覆蓋率，按 resource group 彙整。"""
+    by_rg: dict[str, dict[str, Any]] = {}
+    tagged_total = 0
+
+    for r in resources:
+        tags = r.get("tags") or {}
+        rg = r.get("resourceGroup") or "(unknown)"
+        missing = [k for k in required_keys if not str(tags.get(k, "")).strip()]
+        is_fully_tagged = not missing
+
+        if is_fully_tagged:
+            tagged_total += 1
+
+        entry = by_rg.setdefault(
+            rg, {"total": 0, "tagged": 0, "missing_key_counts": Counter()}
+        )
+        entry["total"] += 1
+        if is_fully_tagged:
+            entry["tagged"] += 1
+        else:
+            for k in missing:
+                entry["missing_key_counts"][k] += 1
+
+    total = len(resources)
+    coverage_pct = round(tagged_total / total * 100, 1) if total > 0 else 0.0
+
+    rg_summary = sorted(
+        [
+            {
+                "resource_group": rg,
+                "total": data["total"],
+                "tagged": data["tagged"],
+                "untagged": data["total"] - data["tagged"],
+                "coverage_pct": round(data["tagged"] / data["total"] * 100, 1),
+                "top_missing_keys": dict(data["missing_key_counts"].most_common(5)),
+            }
+            for rg, data in by_rg.items()
+        ],
+        key=lambda x: x["coverage_pct"],
+    )
+
+    return {
+        "tagged_count": tagged_total,
+        "untagged_count": total - tagged_total,
+        "coverage_pct": coverage_pct,
+        "by_resource_group": rg_summary,
     }
 
 
@@ -577,6 +739,8 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
         amortized_databricks_query_target["settings"]
     )
     storage_client = StorageExportClient(current_settings)
+    management_client = AzureManagementApiClient(current_settings)
+    lakebase_client = LakebaseClient(current_settings)
 
     mcp = FastMCP(
         name="azure_cost_mcp",
@@ -1081,5 +1245,268 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
             "source": "Azure Blob Storage",
         }
         return to_response("Azure 成本匯出檔案", payload, params.response_format)
+
+    @mcp.tool(
+        name="azure_cost_tag_inventory",
+        annotations={
+            "title": "Tag 盤點",
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "idempotentHint": True,
+            "openWorldHint": True,
+        },
+    )
+    async def azure_cost_tag_inventory(params: TagInventoryParams) -> str:
+        """以 Azure Resource Graph 盤點所有資源的 tag 現況，輸出覆蓋率摘要並寫入快取。"""
+
+        subscriptions = params.subscription_ids or resource_graph_client.m365_or_default_subscriptions()
+        required_keys = params.required_tag_keys or current_settings.azure_cost_required_tag_keys_list
+
+        today = date.today().isoformat()
+        inventory_cache_dir = Path(current_settings.azure_cost_tag_inventory_cache_dir)
+
+        all_resources: list[dict[str, Any]] = []
+        cache_hit = False
+
+        if not params.force_refresh and subscriptions:
+            loaded: list[dict[str, Any]] = []
+            all_found = True
+            for sub_id in subscriptions:
+                sub_slug = sub_id.strip("/").replace("/", "_")
+                cache_file = inventory_cache_dir / today / f"{sub_slug}.json"
+                if not cache_file.exists():
+                    all_found = False
+                    break
+                try:
+                    data = json.loads(
+                        await asyncio.to_thread(cache_file.read_text, encoding="utf-8")
+                    )
+                    loaded.extend(data.get("resources", []))
+                except (OSError, json.JSONDecodeError):
+                    all_found = False
+                    break
+            if all_found:
+                all_resources = loaded
+                cache_hit = True
+
+        if not cache_hit:
+            all_resources = await resource_graph_client.get_all_resources_with_tags(
+                subscriptions=subscriptions,
+                resource_types=params.resource_types,
+                resource_groups=params.resource_groups,
+                max_results=params.max_results,
+            )
+
+            by_sub: dict[str, list[dict[str, Any]]] = {}
+            for r in all_resources:
+                sub_id = r.get("subscriptionId") or "unknown"
+                by_sub.setdefault(sub_id, []).append(r)
+
+            for sub_id, sub_resources in by_sub.items():
+                sub_slug = sub_id.strip("/").replace("/", "_")
+                cache_file = inventory_cache_dir / today / f"{sub_slug}.json"
+                file_payload = {
+                    "subscription_id": sub_id,
+                    "snapshot_date": today,
+                    "resource_count": len(sub_resources),
+                    "resources": sub_resources,
+                }
+                await asyncio.to_thread(
+                    _write_json_cache, cache_file, file_payload
+                )
+
+            if lakebase_client.is_configured():
+                try:
+                    if not lakebase_client.is_ready():
+                        await lakebase_client.init()
+                    await lakebase_client.upsert_tag_snapshots(all_resources, today)
+                except Exception as exc:
+                    logger.warning("Lakebase upsert_tag_snapshots failed: %s", exc)
+
+        summary = _build_tag_coverage_summary(all_resources, required_keys)
+
+        payload = {
+            "subscriptions": subscriptions,
+            "snapshot_date": today,
+            "cache_hit": cache_hit,
+            "required_tag_keys": required_keys,
+            "total_resources": len(all_resources),
+            "tagged_count": summary["tagged_count"],
+            "untagged_count": summary["untagged_count"],
+            "coverage_pct": summary["coverage_pct"],
+            "by_resource_group": summary["by_resource_group"],
+            "cache_dir": str(inventory_cache_dir / today),
+            "source": "Azure Resource Graph",
+        }
+        return to_response("Azure Tag 盤點", payload, params.response_format)
+
+    @mcp.tool(
+        name="azure_cost_tag_diff",
+        annotations={
+            "title": "Tag Diff",
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "openWorldHint": False,
+        },
+    )
+    async def azure_cost_tag_diff(params: TagDiffParams) -> str:
+        """比對 desired tags JSON 與快取快照，輸出需更新的 tag 清單（純 dry-run）。"""
+        desired_dir = Path(
+            params.desired_dir
+            if params.desired_dir
+            else Path(current_settings.azure_cost_tag_inventory_cache_dir) / "desired"
+        )
+
+        entries = await asyncio.to_thread(
+            _load_desired_files,
+            desired_dir,
+            params.rg_filter,
+            params.subscription_filter,
+        )
+        diff = _compute_tag_diff(entries)
+
+        add_count = sum(len(d["added"]) for d in diff)
+        mod_count = sum(len(d["modified"]) for d in diff)
+
+        payload = {
+            "desired_dir": str(desired_dir),
+            "total_resources_with_changes": len(diff),
+            "total_tags_to_add": add_count,
+            "total_tags_to_modify": mod_count,
+            "diff": diff,
+            "diff_table": _format_diff_table(diff),
+        }
+        return to_response("Tag Diff", payload, params.response_format)
+
+    @mcp.tool(
+        name="azure_cost_tag_apply",
+        annotations={
+            "title": "Tag Apply",
+            "readOnlyHint": False,
+            "destructiveHint": False,
+            "openWorldHint": True,
+        },
+    )
+    async def azure_cost_tag_apply(params: TagApplyParams) -> str:
+        """將 desired tags 批次回寫至 Azure（apply=True 且 AZURE_COST_TAG_APPLY_ENABLED=true 才實際執行）。"""
+        desired_dir = Path(
+            params.desired_dir
+            if params.desired_dir
+            else Path(current_settings.azure_cost_tag_inventory_cache_dir) / "desired"
+        )
+
+        entries = await asyncio.to_thread(
+            _load_desired_files,
+            desired_dir,
+            params.rg_filter,
+            params.subscription_filter,
+        )
+        diff = _compute_tag_diff(entries)
+
+        will_apply = params.apply and current_settings.azure_cost_tag_apply_enabled
+        results: list[dict[str, Any]] = []
+
+        if will_apply and diff:
+            batch_size = current_settings.azure_cost_tag_apply_batch_size
+            delay_s = current_settings.azure_cost_tag_apply_delay_ms / 1000.0
+
+            for i in range(0, len(diff), batch_size):
+                batch = diff[i : i + batch_size]
+                for entry in batch:
+                    merged = {**entry["unchanged"], **entry["added"]}
+                    for key, change in entry["modified"].items():
+                        merged[key] = change["to"]
+                    try:
+                        await management_client.patch_resource_tags(
+                            entry["resource_id"], tags=merged
+                        )
+                        results.append({"resource_id": entry["resource_id"], "status": "ok"})
+                    except Exception as exc:
+                        results.append(
+                            {"resource_id": entry["resource_id"], "status": "error", "error": str(exc)}
+                        )
+                if delay_s > 0 and i + batch_size < len(diff):
+                    await asyncio.sleep(delay_s)
+        else:
+            for entry in diff:
+                results.append({"resource_id": entry["resource_id"], "status": "dry-run"})
+
+        ok_count = sum(1 for r in results if r["status"] == "ok")
+        error_count = sum(1 for r in results if r["status"] == "error")
+
+        if diff and lakebase_client.is_configured():
+            try:
+                if not lakebase_client.is_ready():
+                    await lakebase_client.init()
+                await lakebase_client.record_tag_changes(
+                    diff,
+                    dry_run=not will_apply,
+                    rationale=params.rationale or "",
+                )
+            except Exception as exc:
+                logger.warning("Lakebase record_tag_changes failed: %s", exc)
+
+        payload = {
+            "mode": "apply" if will_apply else "dry-run",
+            "apply_enabled": current_settings.azure_cost_tag_apply_enabled,
+            "apply_requested": params.apply,
+            "rationale": params.rationale,
+            "total_resources": len(diff),
+            "ok": ok_count,
+            "errors": error_count,
+            "dry_run_count": len(diff) - ok_count - error_count,
+            "diff_table": _format_diff_table(diff),
+            "results": results,
+        }
+        return to_response("Tag Apply", payload, params.response_format)
+
+    @mcp.tool(
+        name="azure_cost_tag_suggest",
+        annotations={
+            "title": "Tag 相似性建議",
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "openWorldHint": False,
+        },
+    )
+    async def azure_cost_tag_suggest(params: TagSuggestParams) -> str:
+        """依據 Lakebase tag 歷史快照，找出相似的已標記資源並建議 tag 值。"""
+        required_keys = params.required_tag_keys or current_settings.azure_cost_required_tag_keys_list
+
+        if not lakebase_client.is_configured():
+            payload: dict[str, Any] = {
+                "status": "skipped",
+                "reason": "Lakebase 尚未設定（LAKEBASE_ENABLED=false 或缺少連線設定）。",
+                "suggestions": [],
+            }
+            return to_response("Tag 相似性建議", payload, params.response_format)
+
+        try:
+            if not lakebase_client.is_ready():
+                await lakebase_client.init()
+            suggestions = await lakebase_client.find_similar_tagged_resources(
+                resource_type=params.resource_type or "",
+                resource_group=params.resource_group or "",
+                required_keys=required_keys,
+                limit=params.limit,
+            )
+        except Exception as exc:
+            payload = {
+                "status": "error",
+                "reason": str(exc),
+                "suggestions": [],
+            }
+            return to_response("Tag 相似性建議", payload, params.response_format)
+
+        payload = {
+            "status": "ok",
+            "resource_type": params.resource_type,
+            "resource_group": params.resource_group,
+            "required_tag_keys": required_keys,
+            "limit": params.limit,
+            "suggestion_count": len(suggestions),
+            "suggestions": suggestions,
+        }
+        return to_response("Tag 相似性建議", payload, params.response_format)
 
     return mcp
