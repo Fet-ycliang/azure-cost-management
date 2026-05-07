@@ -80,6 +80,21 @@
 - **datasource 過濾**：`rag_develop_catalog` 同時含 m365 和 fabric，查詢時必加 `datasource='m365'` 或 `'fabric'`。
 - Genie space config 範例問題若出現 0 結果，可能是引用了已刪除欄位（view 欄位數量有優化）。
 
+## Tag 標準規範
+
+- **Environment 標準值**：`dev` / `bst` / `prod`（`bst` = BST staging，對應舊 `EnvType` 的 `Staging`）
+- 舊 `EnvType` 值對照：`Develop`→`dev`、`Staging`→`bst`、`Production`→`prod`
+- Tag key 全小寫 snake_case；Value 小寫連字號（如 `ai-verse`）
+
+### Tag 轉換策略（重要架構決定）
+
+- **舊 tag key 不在 Azure 層改名**，保留 `CostCenter`、`EnvType`、`Purpose` 原樣。
+- Key / Value 正規化在**資料層（Genie / Databricks）**做，不在 Azure 做：
+  - `CostCenter` → `cost_center`（值不變）
+  - `EnvType` → `environment`（值正規化：`Production`→`prod`、`Staging`→`bst`、`Develop`→`dev`）
+  - `Purpose` → `application`（值全轉小寫）
+- **fill_rg_tags.py / azure_cost_tag_apply 只補真正缺漏的 key**（`workload`、`owner`），不重複寫舊 key 的新命名版本。
+
 ## 開發踩坑規則（Epic 2–4 整合後更新）
 
 ### 路徑慣例

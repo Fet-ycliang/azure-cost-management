@@ -185,6 +185,13 @@ class LakebaseClient:
             connect_args=connect_args,
         )
 
+        # 向每條 asyncpg 連線註冊 pgvector codec（否則 vector 欄位會以 JSONB 傳入而報錯）
+        try:
+            from pgvector.asyncpg import register_vector as _register_vector
+            connect_args["init"] = _register_vector
+        except ImportError:
+            pass  # pgvector 未安裝時跳過
+
         # 動態 token 注入
         if not s.lakebase_pg_url:
             @event.listens_for(self._engine.sync_engine, "do_connect")
@@ -350,11 +357,10 @@ class LakebaseClient:
         if not self.is_configured() or not self._session_maker:
             return []
 
-        from sqlalchemy import select, func, text
+        from sqlalchemy import select, text
         from .lakebase_models import TagSnapshot
 
         async with self.session_scope() as session:
-            # 找同類型、同 RG、已完整標記的最新快照
             conditions = [TagSnapshot.type == resource_type]
             for key in required_keys:
                 conditions.append(
@@ -370,3 +376,112 @@ class LakebaseClient:
             result = await session.execute(stmt)
             rows = result.scalars().all()
             return [r.to_dict() for r in rows]
+
+    async def upsert_tag_embeddings(
+        self,
+        resources: list[dict[str, Any]],
+        snapshot_date: str,
+        embed_fn: Any,
+    ) -> int:
+        """批次生成並寫入 tag_embeddings，回傳寫入筆數。
+
+        embed_fn: async callable(texts: list[str]) -> list[list[float]]
+        使用原生 SQL + CAST(... AS vector) 繞過 asyncpg codec 問題。
+        """
+        if not self.is_configured() or not self._session_maker:
+            return 0
+
+        import uuid as _uuid
+        from datetime import date as _date, datetime as _dt, timezone as _tz
+        from sqlalchemy import text
+        from .embedding import _resource_to_text
+
+        parsed_date = _date.fromisoformat(snapshot_date) if isinstance(snapshot_date, str) else snapshot_date
+        schema = self._settings.lakebase_schema
+
+        texts = [_resource_to_text(r) for r in resources]
+        vectors: list[list[float]] = await embed_fn(texts)
+
+        del_sql = text(
+            f"DELETE FROM {schema}.tag_embeddings"
+            " WHERE resource_id = :rid AND snapshot_date = :dt"
+        )
+        ins_sql = text(
+            f"INSERT INTO {schema}.tag_embeddings"
+            " (id, resource_id, tag_summary, embedding, snapshot_date, created_at)"
+            " VALUES (:id, :rid, :summary, CAST(:vec AS public.vector), :dt, :now)"
+        )
+
+        written = 0
+        async with self.session_scope() as session:
+            now = _dt.now(_tz.utc)
+            for r, vec, summary in zip(resources, vectors, texts):
+                rid = r.get("id") or r.get("resource_id") or ""
+                vec_str = "[" + ",".join(str(v) for v in vec) + "]"
+                await session.execute(del_sql, {"rid": rid, "dt": parsed_date})
+                await session.execute(ins_sql, {
+                    "id": str(_uuid.uuid4()),
+                    "rid": rid,
+                    "summary": summary,
+                    "vec": vec_str,
+                    "dt": parsed_date,
+                    "now": now,
+                })
+                written += 1
+        return written
+
+    async def find_similar_by_vector(
+        self,
+        query_embedding: list[float],
+        *,
+        resource_type: str | None = None,
+        limit: int = 5,
+    ) -> list[dict[str, Any]]:
+        """用 pgvector cosine 距離搜尋最相似的已標記資源。"""
+        if not self.is_configured() or not self._session_maker:
+            return []
+
+        from sqlalchemy import select, text
+        from .lakebase_models import TagEmbedding, TagSnapshot
+
+        async with self.session_scope() as session:
+            # 先取最近似的 embedding rows
+            distance_expr = TagEmbedding.embedding.op("<=>")(query_embedding)
+            stmt = (
+                select(TagEmbedding, distance_expr.label("distance"))
+                .order_by(distance_expr)
+                .limit(limit * 2)  # 多取一些，後面再 join tag 過濾
+            )
+            if resource_type:
+                stmt = stmt.where(
+                    TagEmbedding.resource_id.in_(
+                        select(TagSnapshot.resource_id).where(TagSnapshot.type == resource_type)
+                    )
+                )
+            result = await session.execute(stmt)
+            rows = result.all()
+
+            # 撈對應的 tag snapshot
+            resource_ids = [row.TagEmbedding.resource_id for row in rows]
+            snap_stmt = (
+                select(TagSnapshot)
+                .where(TagSnapshot.resource_id.in_(resource_ids))
+                .order_by(TagSnapshot.snapshot_date.desc())
+                .distinct(TagSnapshot.resource_id)
+            )
+            snap_result = await session.execute(snap_stmt)
+            snap_by_id = {s.resource_id: s for s in snap_result.scalars().all()}
+
+            output = []
+            for row in rows[:limit]:
+                emb = row.TagEmbedding
+                snap = snap_by_id.get(emb.resource_id)
+                entry: dict[str, Any] = {
+                    "resource_id": emb.resource_id,
+                    "tag_summary": emb.tag_summary,
+                    "distance": float(row.distance),
+                    "similarity": round(1 - float(row.distance), 4),
+                    "tags": snap.tags if snap else {},
+                }
+                output.append(entry)
+            return output
