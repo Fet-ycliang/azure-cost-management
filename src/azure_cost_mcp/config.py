@@ -287,6 +287,23 @@ class Settings(BaseSettings):
         validation_alias="AZURE_COST_TAG_APPLY_DELAY_MS",
         description="azure_cost_tag_apply 批次之間的等待毫秒數（避免觸發 API 速率限制）。",
     )
+    databricks_embedding_url: str | None = Field(
+        default=None,
+        validation_alias="DATABRICKS_EMBEDDING_URL",
+        description="Databricks AI Gateway embedding endpoint，例如 https://<workspace>/ai-gateway/mlflow/v1/embeddings。",
+    )
+    databricks_embedding_model: str = Field(
+        default="databricks-bge-large-en",
+        validation_alias="DATABRICKS_EMBEDDING_MODEL",
+        description="Databricks embedding 模型名稱。",
+    )
+    databricks_embedding_dim: int = Field(
+        default=1024,
+        ge=64,
+        le=4096,
+        validation_alias="DATABRICKS_EMBEDDING_DIM",
+        description="embedding 向量維度（BGE-Large-EN=1024，Ada-002=1536）。",
+    )
 
     @property
     def azure_cost_required_tag_keys_list(self) -> list[str]:

@@ -21,6 +21,7 @@ from .azure_management import AzureManagementApiClient, AzureManagementApiError
 from .config import Settings, get_settings
 from .cost_management import CostManagementClient
 from .databricks_mcp import DatabricksMcpClient, DatabricksMcpClientError
+from .embedding import DatabricksEmbeddingClient
 from .formatting import to_response
 from .lakebase import LakebaseClient
 from .models import (
@@ -34,6 +35,7 @@ from .models import (
     StorageExportsParams,
     TagApplyParams,
     TagDiffParams,
+    TagEmbedParams,
     TagInventoryParams,
     TagSuggestParams,
     TrendGranularity,
@@ -70,6 +72,7 @@ IMPLEMENTED_TOOLS = [
     "azure_cost_tag_inventory",
     "azure_cost_tag_diff",
     "azure_cost_tag_apply",
+    "azure_cost_embed_tags",
     "azure_cost_tag_suggest",
 ]
 
@@ -742,6 +745,7 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
     storage_client = StorageExportClient(current_settings)
     management_client = AzureManagementApiClient(current_settings, credential_fn=create_m365_credential)
     lakebase_client = LakebaseClient(current_settings)
+    embedding_client = DatabricksEmbeddingClient(current_settings)
 
     mcp = FastMCP(
         name="azure_cost_mcp",
@@ -1462,6 +1466,96 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
         return to_response("Tag Apply", payload, params.response_format)
 
     @mcp.tool(
+        name="azure_cost_embed_tags",
+        annotations={
+            "title": "Tag Embedding 生成",
+            "readOnlyHint": False,
+            "destructiveHint": False,
+            "openWorldHint": False,
+        },
+    )
+    async def azure_cost_embed_tags(params: TagEmbedParams) -> str:
+        """讀取 tag_snapshots 中指定日期的資源，生成 embedding 向量並寫入 tag_embeddings 表。
+
+        需要 LAKEBASE_ENABLED=true、DATABRICKS_EMBEDDING_URL、DATABRICKS_TOKEN。
+        """
+        if not embedding_client.is_configured():
+            payload: dict[str, Any] = {
+                "status": "skipped",
+                "reason": "Embedding 未設定：需要 DATABRICKS_EMBEDDING_URL 與 DATABRICKS_TOKEN。",
+            }
+            return to_response("Tag Embedding 生成", payload, params.response_format)
+
+        if not lakebase_client.is_configured():
+            payload = {
+                "status": "skipped",
+                "reason": "Lakebase 尚未設定（LAKEBASE_ENABLED=false 或缺少連線設定）。",
+            }
+            return to_response("Tag Embedding 生成", payload, params.response_format)
+
+        try:
+            if not lakebase_client.is_ready():
+                await lakebase_client.init()
+
+            from sqlalchemy import select
+            from .lakebase_models import TagSnapshot
+
+            # 讀取指定日期的 tag snapshots
+            async with lakebase_client.session_scope() as session:
+                conditions = [TagSnapshot.snapshot_date == params.snapshot_date]
+                if params.resource_group:
+                    conditions.append(TagSnapshot.resource_group == params.resource_group)
+                if params.subscription_id:
+                    conditions.append(TagSnapshot.subscription_id == params.subscription_id)
+                stmt = select(TagSnapshot).where(*conditions)
+                result = await session.execute(stmt)
+                rows = result.scalars().all()
+
+            resources = [
+                {
+                    "id": r.resource_id,
+                    "name": r.name,
+                    "type": r.type,
+                    "resource_group": r.resource_group,
+                    "tags": r.tags,
+                }
+                for r in rows
+            ]
+
+            if not resources:
+                payload = {
+                    "status": "skipped",
+                    "reason": f"找不到 snapshot_date={params.snapshot_date} 的資源快照。",
+                }
+                return to_response("Tag Embedding 生成", payload, params.response_format)
+
+            # 批次生成 embedding
+            total = 0
+            bs = params.batch_size
+            for i in range(0, len(resources), bs):
+                batch = resources[i : i + bs]
+                written = await lakebase_client.upsert_tag_embeddings(
+                    batch,
+                    params.snapshot_date,
+                    embedding_client.get_embeddings_batch,
+                )
+                total += written
+
+        except Exception as exc:
+            logger.warning("azure_cost_embed_tags failed: %s", exc)
+            payload = {"status": "error", "reason": str(exc)}
+            return to_response("Tag Embedding 生成", payload, params.response_format)
+
+        payload = {
+            "status": "ok",
+            "snapshot_date": params.snapshot_date,
+            "model": current_settings.databricks_embedding_model,
+            "dim": current_settings.databricks_embedding_dim,
+            "resources_embedded": total,
+        }
+        return to_response("Tag Embedding 生成", payload, params.response_format)
+
+    @mcp.tool(
         name="azure_cost_tag_suggest",
         annotations={
             "title": "Tag 相似性建議",
@@ -1471,7 +1565,11 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
         },
     )
     async def azure_cost_tag_suggest(params: TagSuggestParams) -> str:
-        """依據 Lakebase tag 歷史快照，找出相似的已標記資源並建議 tag 值。"""
+        """依據 Lakebase tag 歷史快照，找出相似的已標記資源並建議 tag 值。
+
+        若有設定 DATABRICKS_EMBEDDING_URL 且傳入 query_text，則使用 pgvector 向量搜尋；
+        否則退回 SQL type/rg 篩選。
+        """
         required_keys = params.required_tag_keys or current_settings.azure_cost_required_tag_keys_list
 
         if not lakebase_client.is_configured():
@@ -1485,12 +1583,26 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
         try:
             if not lakebase_client.is_ready():
                 await lakebase_client.init()
-            suggestions = await lakebase_client.find_similar_tagged_resources(
-                resource_type=params.resource_type or "",
-                resource_group=params.resource_group or "",
-                required_keys=required_keys,
-                limit=params.limit,
-            )
+
+            use_vector = bool(params.query_text and embedding_client.is_configured())
+
+            if use_vector:
+                query_vec = await embedding_client.get_embedding(params.query_text)  # type: ignore[arg-type]
+                suggestions = await lakebase_client.find_similar_by_vector(
+                    query_vec,
+                    resource_type=params.resource_type,
+                    limit=params.limit,
+                )
+                search_mode = "vector"
+            else:
+                suggestions = await lakebase_client.find_similar_tagged_resources(
+                    resource_type=params.resource_type or "",
+                    resource_group=params.resource_group or "",
+                    required_keys=required_keys,
+                    limit=params.limit,
+                )
+                search_mode = "sql"
+
         except Exception as exc:
             payload = {
                 "status": "error",
@@ -1501,6 +1613,7 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
 
         payload = {
             "status": "ok",
+            "search_mode": search_mode,
             "resource_type": params.resource_type,
             "resource_group": params.resource_group,
             "required_tag_keys": required_keys,

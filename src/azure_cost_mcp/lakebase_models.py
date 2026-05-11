@@ -104,18 +104,29 @@ class TagChange(Base):
         }
 
 
+EMBEDDING_DIM: int = 1024
+"""向量維度：databricks-bge-large-en=1024；Ada-002=1536。
+可在執行期透過 set_embedding_dim() 修改，需在 Base.metadata.create_all() 之前呼叫。"""
+
+
+def set_embedding_dim(dim: int) -> None:
+    """設定 embedding 維度（需在建立 schema 前呼叫）。"""
+    global EMBEDDING_DIM
+    EMBEDDING_DIM = dim
+
+
 def _embedding_column() -> Any:
-    """回傳 embedding 欄位類型：有 pgvector 時用 Vector(1536)，否則 JSONB 作 fallback。"""
+    """回傳 embedding 欄位類型：有 pgvector 時用 Vector(EMBEDDING_DIM)，否則 JSONB 作 fallback。"""
     if _HAS_PGVECTOR and Vector is not None:
-        return mapped_column(Vector(1536), nullable=True)
+        return mapped_column(Vector(EMBEDDING_DIM), nullable=True)
     return mapped_column(JSONB, nullable=True)  # pragma: no cover
 
 
 class TagEmbedding(Base):
     """資源 tag 語意向量，供 pgvector 相似性搜尋使用。
 
-    embedding 欄位由 azure_cost_tag_suggest tool 填入。
-    向量維度 1536（Azure OpenAI text-embedding-ada-002）。
+    embedding 欄位由 azure_cost_embed_tags tool 填入。
+    預設向量維度 1024（databricks-bge-large-en）；Ada-002 請改為 1536。
     pgvector 套件需已安裝（uv sync --group lakebase），且 DB 已啟用 vector extension。
     """
 

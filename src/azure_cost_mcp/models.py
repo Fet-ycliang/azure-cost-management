@@ -413,6 +413,35 @@ class TagSuggestParams(ResponseOptions):
         le=20,
         description="最多回傳幾筆相似已標記資源。",
     )
+    query_text: str | None = Field(
+        default=None,
+        description=(
+            "要搜尋的自由文字（例如資源名稱、用途描述）。"
+            "有設定 DATABRICKS_EMBEDDING_URL 時使用 pgvector 向量搜尋；否則退回 SQL 篩選。"
+        ),
+    )
+
+
+class TagEmbedParams(ResponseOptions):
+    """Tag embedding 生成工具輸入。"""
+
+    snapshot_date: str = Field(
+        description="要處理的快照日期（YYYY-MM-DD），需已存在於 tag_snapshots 表中。",
+    )
+    resource_group: str | None = Field(
+        default=None,
+        description="限定 resource group；省略則處理該日期所有 RG。",
+    )
+    subscription_id: str | None = Field(
+        default=None,
+        description="限定訂閱 ID；省略則不限。",
+    )
+    batch_size: int = Field(
+        default=50,
+        ge=1,
+        le=200,
+        description="每次送給 embedding API 的文字數量。",
+    )
 
 
 class TagRemediationParams(ResponseOptions, RequiredTagsOptions):
