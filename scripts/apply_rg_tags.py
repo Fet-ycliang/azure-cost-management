@@ -39,8 +39,8 @@ def main() -> int:
     for e in entries:
         current = e.get("current_tags") or {}
         desired = e.get("desired_tags") or {}
-        # 只補真正需要新增 / 修改的 key
-        to_add = {k: v for k, v in desired.items() if current.get(k) != v}
+        # 只補真正需要新增 / 修改的 key；空字串視為「尚未決定」，略過
+        to_add = {k: v for k, v in desired.items() if v and current.get(k) != v}
         if not to_add:
             skip += 1
             continue

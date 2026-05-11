@@ -128,6 +128,52 @@
 - **`dict(obj)` 是淺層複製**：module-level fixture dict 若含巢狀 dict（如 `desired_tags`），`dict(ENTRY)` 後 nested dict 仍指向同一物件。test A 若修改 `entry["desired_tags"]`，會靜默污染後續 tests（症狀：某 test 單跑 pass，全套跑 fail，且錯誤值來自另一個 test 的副作用）。
 - **Fix**：對含有巢狀 mutable 值的 fixture，一律用 `copy.deepcopy(ENTRY)` 而非 `dict(ENTRY)`。
 
+## Tag 治理踩坑規則（Epic 5 批次補標後更新）
+
+### desired JSON 保護
+- **`gen_tag_inventory_md.py` 重跑會覆蓋 desired JSON**：已補上 `--skip-desired` 旗標，更新 Obsidian 時必須加此旗標以保留已填好的值。
+  ```bash
+  python scripts/gen_tag_inventory_md.py --required-tags "CostCenter,Purpose" --skip-desired
+  ```
+- **desired JSON 維護原則**：current_tags 可隨時重抓覆蓋（反映 Azure 現況）；desired_tags 是人工設定的目標值，**永遠不要讓腳本自動覆蓋**。
+
+### remove_lowercase_tags.py 前提條件
+- **必須先刷新 current_tags 快照，再執行刪除**：腳本以 `current_tags` 有無大寫 key 來判斷是否可刪小寫版本。若快照過期（大寫 key 剛補上但 current_tags 未同步），會誤判為「大寫不存在」而跳過，導致刪不掉。
+- **刷新 + 刪除的正確順序**：
+  1. `az resource list` 重抓 → 更新 `desired/{rg}.json` 的 `current_tags`
+  2. `python scripts/remove_lowercase_tags.py --rg <rg>`
+
+### apply_rg_tags.py 空字串語意
+- desired_tags 中的空字串 `""` 代表「尚未決定」，apply 時**自動略過**（`if v and current.get(k) != v`）。
+- 填值時不需特別清空欄位，留空即可等日後補上後再 apply。
+
+### NIC / Private Endpoint tag 繼承原則
+- NIC 和 Private Endpoint 應比照**其附掛的母資源**設定相同 tag。
+- 命名推導規則：`<parent-name>-endpoint` → 母資源為 `<parent-name>`；`<parent-name>-endpoint-nic` → 同上。
+- **先補母資源，再補 NIC/PEP**，避免繼承到空值。
+
+### Purpose 值與 CostCenter 對應規則
+- `CostCenter=3101` → `Purpose=31_ai_lab`（非 `ai_lab`，非 `OperationAI`）
+- `CostCenter=3901` → `Purpose=ai_verse`（非 `ai_lab`，非 `ids-bot`）
+- 舊值對照：`OperationAI` → `31_ai_lab`；`ids-bot` → `ai_verse`；`ai_lab`（3101）→ `31_ai_lab`
+
+### current_tags 快照更新腳本
+手動刷新單一 RG 的快照並 patch desired JSON：
+```python
+import json, subprocess
+AZ = 'az.cmd'
+resources = json.loads(subprocess.run(
+    [AZ, 'resource', 'list', '--subscription', SID, '--resource-group', RG],
+    capture_output=True, text=True).stdout)
+lookup = {r['id']: r.get('tags') or {} for r in resources}
+data = json.loads(open(f'.cache/tag-inventory/desired/{RG}.json', encoding='utf-8').read())
+for e in data:
+    if e['resource_id'] in lookup:
+        e['current_tags'] = lookup[e['resource_id']]
+open(f'.cache/tag-inventory/desired/{RG}.json', 'w', encoding='utf-8').write(
+    json.dumps(data, ensure_ascii=False, indent=2))
+```
+
 ## Windows 開發環境注意
 
 - **hooks 裡使用 jq**：Windows 上 jq 輸出會帶 `\r`（carriage return），pipe 取檔案路徑時需加 `| tr -d '\r'`，否則 Python 等工具會收到帶 `\r` 的路徑而報錯。
@@ -145,4 +191,6 @@
 - CLI 入口：`src\azure_cost_mcp\__main__.py`
 - Tag 盤點 MD 生成：`scripts\gen_tag_inventory_md.py`（產生 Obsidian + desired JSON）
 - Tag 批次填值：`scripts\fill_rg_tags.py`（`--dry-run` 先確認再執行；`--overwrite` 強制覆蓋已有值）
+- Tag 批次套用：`scripts\apply_rg_tags.py --rg <rg> [--dry-run]`（空字串 desired 自動跳過）
+- 小寫 tag 刪除：`scripts\remove_lowercase_tags.py --rg <rg> [--dry-run]`（需先刷新 current_tags 快照）
 

@@ -282,6 +282,7 @@ def main() -> int:
     parser.add_argument("--required-tags", default="cost_center", help="必要 tag keys，逗號分隔")
     parser.add_argument("--cache-dir", default=".cache/tag-inventory", help="快取根目錄")
     parser.add_argument("--top-gap", type=int, default=20, help="gap summary 最多顯示幾筆")
+    parser.add_argument("--skip-desired", action="store_true", help="不重新產生 desired JSON（保留已填好的值）")
     args = parser.parse_args()
 
     cache_dir = Path(args.cache_dir)
@@ -367,18 +368,21 @@ def main() -> int:
     )
     print(f"[info] Tag 缺漏摘要 → {obsidian_dir / 'tag-gap-summary.md'}")
 
-    desired_written = 0
-    for rg, untagged_resources in sorted(desired_by_rg.items()):
-        safe_rg = rg.replace("/", "_").strip("_")
-        _write_desired_json(
-            desired_dir / f"{safe_rg}.json",
-            resources=untagged_resources,
-            required_keys=required_keys,
-        )
-        desired_written += 1
+    if args.skip_desired:
+        print("[info] --skip-desired：跳過 desired JSON 產生")
+    else:
+        desired_written = 0
+        for rg, untagged_resources in sorted(desired_by_rg.items()):
+            safe_rg = rg.replace("/", "_").strip("_")
+            _write_desired_json(
+                desired_dir / f"{safe_rg}.json",
+                resources=untagged_resources,
+                required_keys=required_keys,
+            )
+            desired_written += 1
 
-    if desired_written:
-        print(f"[info] desired tags 範本（{desired_written} 個 RG）→ {desired_dir}")
+        if desired_written:
+            print(f"[info] desired tags 範本（{desired_written} 個 RG）→ {desired_dir}")
 
     total = len(resources)
     total_untagged = sum(r["untagged"] for r in rg_stats)

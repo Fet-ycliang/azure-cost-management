@@ -33,6 +33,7 @@ EXCLUDE_TYPES = {
     "microsoft.network/privatednszones/virtualnetworklinks",
     "microsoft.automation/automationaccounts/runbooks",
     "microsoft.cognitiveservices/accounts/projects",
+    "microsoft.powerplatform/enterprisepolicies",  # 不支援 ARM tag 寫入
 }
 
 AZ = "az.cmd" if sys.platform == "win32" else "az"
