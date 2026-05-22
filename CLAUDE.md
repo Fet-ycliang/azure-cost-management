@@ -209,6 +209,12 @@ open(f'.cache/tag-inventory/desired/{RG}.json', 'w', encoding='utf-8').write(
 
 - **hooks 裡使用 jq**：Windows 上 jq 輸出會帶 `\r`（carriage return），pipe 取檔案路徑時需加 `| tr -d '\r'`，否則 Python 等工具會收到帶 `\r` 的路徑而報錯。
 - **`uv run` 被執行中的 server 鎖住**：MCP server 執行中時，`uv run python scripts/xxx.py` 會失敗（`error: failed to remove file azure-cost-mcp.exe: 程序無法存取檔案`），因為 uv 試圖更新鎖定中的 `.exe`。**Fix**：改用 `python scripts/xxx.py` 直接呼叫，不透過 `uv run`。
+- **Resource ID 含括號時 subprocess list form 會失敗**：`az.cmd` 在 Windows 上透過 cmd.exe 執行，括號 `(` `)` 是 CMD 的群組字元。呼叫 `az` 時若 resource ID 含括號（如 `ContainerInsights(xxx)`、`SecurityCenterFree(xxx)`），用 list form 傳入參數，cmd.exe 仍會解析括號導致 "不應有 --operation / --query" 等錯誤。**Fix**：改用 `shell=True` 並以雙引號包裹 resource ID 與含特殊字元的 tag 值：
+  ```python
+  tag_str = ' '.join(f'"{k}={v}"' for k, v in to_add.items())
+  cmd = f'az tag update --resource-id "{rid}" --operation Merge --tags {tag_str}'
+  result = subprocess.run(cmd, shell=True, ...)
+  ```
 
 ## 導航提示
 

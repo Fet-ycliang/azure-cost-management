@@ -36,6 +36,7 @@ def main() -> int:
     parser.add_argument("--rg", required=True)
     parser.add_argument("--desired-dir", default=".cache/tag-inventory/desired")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--name-filter", default="", help="只處理名稱含此字串的資源（不區分大小寫）")
     args = parser.parse_args()
 
     target = Path(args.desired_dir) / f"{args.rg}.json"
@@ -44,6 +45,9 @@ def main() -> int:
         return 1
 
     entries: list[dict] = json.loads(target.read_text(encoding="utf-8"))
+    if args.name_filter:
+        entries = [e for e in entries if args.name_filter.lower() in e.get("name", "").lower()]
+        print(f"[filter] --name-filter={args.name_filter!r}，符合 {len(entries)} 筆")
 
     ok = err = skip = 0
     for e in entries:
@@ -72,19 +76,26 @@ def main() -> int:
             print(f"  [skip] 系統管理 RG ({rg_part})，略過 {e.get('name')}")
             skip += 1
             continue
-        tag_pairs = " ".join(f'"{k}={v}"' for k, v in to_add.items())
-        cmd = [
-            AZ, "tag", "update",
-            "--resource-id", resource_id,
-            "--operation", "Merge",
-            "--tags", *[f"{k}={v}" for k, v in to_add.items()],
-        ]
 
         print(f"[{'dry-run' if args.dry_run else 'apply'}] {e['name']}")
         print(f"  新增 tags: {to_add}")
 
         if not args.dry_run:
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            # Windows az.cmd 透過 cmd.exe 執行，括號是 CMD 群組字元。
+            # resource ID 含括號時（如 ContainerInsights(xxx)）用 shell=True + 字串引號。
+            has_parens = "(" in resource_id or ")" in resource_id
+            if has_parens:
+                tag_str = " ".join(f'"{k}={v}"' for k, v in to_add.items())
+                cmd_str = f'{AZ} tag update --resource-id "{resource_id}" --operation Merge --tags {tag_str}'
+                result = subprocess.run(cmd_str, shell=True, capture_output=True, text=True)
+            else:
+                cmd = [
+                    AZ, "tag", "update",
+                    "--resource-id", resource_id,
+                    "--operation", "Merge",
+                    "--tags", *[f"{k}={v}" for k, v in to_add.items()],
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode == 0:
                 ok += 1
                 print(f"  [ok]")
