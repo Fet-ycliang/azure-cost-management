@@ -312,7 +312,7 @@ Azure Cost Management Query API 的 **per-scope limit 是 4 requests/minute**。
 換句話說：
 
 - **REST API**：適合互動式查詢、saved view replay、current month / last month 對帳
-- **Databricks system_report tables**：適合 D-2 對帳、長區間明細、複合歸屬分析
+- **Databricks system_report tables**：適合 D-2 對帳、長區間明細、複合歸屬分析（`rag_analyst_catalog`）
 - **Cache**：只解決重複查同一個 request，不解決大批量 ingestion
 
 如果要做穩定 ingestion，建議流程是：

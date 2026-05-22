@@ -95,10 +95,10 @@ GROUP BY service_name，
 依金額降序排列。
 ```
 
-### 第一份：Azure 平台（system_catalog）
+### 第一份：Azure 平台（rag_analyst_catalog）
 ```
 步驟1：問 ActualCost 全服務
-「在 system_catalog ActualCost 中，查 period='2026-04-01'，
+「在 rag_analyst_catalog ActualCost 中，查 period='2026-04-01'，
 GROUP BY service_name，SUM(total_cost) 降序排列，全部列出包含 Unassigned」
 
 步驟2（followup 延伸）：

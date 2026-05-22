@@ -72,7 +72,7 @@ Databricks 走預繳 / Reservation，ActualCost 可能為 0，必須用 Amortize
 
 ```sql
 SELECT DISTINCT purpose, COUNT(*) as cnt
-FROM system_catalog.system_report.daily_azure_cost_usage_actual_view
+FROM rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_view
 WHERE period = '2026-04-01'
   AND resource_group_name IN (...)
 GROUP BY purpose
@@ -115,14 +115,14 @@ period='YYYY-MM-01'，
 ```sql
 -- AmortizedCost (Databricks)
 SELECT SUM(total_cost) 
-FROM system_catalog.system_report.daily_azure_cost_usage_amortized_view
+FROM rag_analyst_catalog.system_report.daily_azure_cost_usage_amortized_view
 WHERE period = '2026-04-01'
   AND purpose IN ('purpose_value')
   AND service_name = 'Azure Databricks'
 
 -- ActualCost (Azure 一般服務)
 SELECT SUM(total_cost)
-FROM system_catalog.system_report.daily_azure_cost_usage_actual_view
+FROM rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_view
 WHERE period = '2026-04-01'
   AND purpose IN ('purpose_value')
   AND service_name != 'Azure Databricks'
@@ -131,7 +131,7 @@ WHERE period = '2026-04-01'
 ### ResourceGroup 查詢
 ```sql
 SELECT SUM(total_cost)
-FROM system_catalog.system_report.daily_azure_cost_usage_actual_view
+FROM rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_view
 WHERE period = '2026-04-01'
   AND resource_group_name IN ('rg-name-1', 'rg-name-2')
 ```
