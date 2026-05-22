@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ActualCost__query_space_01f145606c591a8b881c05774b621e71",
+      "mcp__ActualCost__poll_response_01f145606c591a8b881c05774b621e71",
+      "mcp__AmortizedCost__query_space_01f14564c24f1448904bbd0dcd66d4ae",
+      "mcp__AmortizedCost__poll_response_01f14564c24f1448904bbd0dcd66d4ae",
+      "Bash(git *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(py --version)",
+      "Bash(py *)",
+      "Bash(chmod +x /dev/stdin)",
+      "Bash(bash)",
+      "Bash(PYTHONPATH=src python -m pytest tests/test_auth.py tests/test_config.py tests/test_azure_management.py -v --no-cov)",
+      "mcp__azure__advisor"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "databricks-genie",
+    "azure",
+    "genie",
+    "sql",
+    "ActualCost",
+    "AmortizedCost"
+  ],
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | tr -d '\\r' | { read -r f; [ -n \"$f\" ] && echo \"$f\" | grep -qE '\\.py$' && (cd \"D:/azure_code/azure-cost-management\" && uv run python -m py_compile \"$f\"); } 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Checking Python syntax..."
+          }
+        ]
+      }
+    ]
+  }
+}

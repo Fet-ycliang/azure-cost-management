@@ -305,7 +305,7 @@ Azure Cost Management Query API 的 **per-scope limit 是 4 requests/minute**。
 | --- | --- |
 | 單一 view 驗證、Portal 對帳、目前月份快速查詢 | Cost Management Query API |
 | 少量 view 的月趨勢 replay | Cost Management Query API |
-| 每月 2 號對帳、且以 **D-2** 為準的正式對帳資料 | `system_catalog`（或 `rag_analyst_catalog`）`.system_report.daily_azure_cost_usage_*` |
+| 每月 2 號對帳、且以 **D-2** 為準的正式對帳資料 | `rag_analyst_catalog`（或 `system_catalog`）`.system_report.daily_azure_cost_usage_*` |
 | 多個月、又要同時看 `resource_group` / `service_name` / `purpose` / `cost_center` | Databricks 明細表 / 彙總表 |
 | 月結後的正式報表、variance、forecast 基礎資料 | 已落地的 Databricks / Delta fact table |
 
@@ -318,8 +318,8 @@ Azure Cost Management Query API 的 **per-scope limit 是 4 requests/minute**。
 如果要做穩定 ingestion，建議流程是：
 
 1. 先用 REST API 驗證 view 定義與月總額
-2. 以 `system_catalog.system_report.daily_azure_cost_usage_actual` / `_amortized` 當明細來源（Genie 有時改用 `rag_analyst_catalog`，以實際 SQL 為準）
-3. 以 `system_catalog.system_report.daily_azure_cost_usage_actual_agg` / `_amortized_agg` 當快速對帳或彙總來源
+2. 以 `rag_analyst_catalog.system_report.daily_azure_cost_usage_actual` / `_amortized` 當明細來源（以 Genie 實際 SQL 為準，部分整體查詢可能用 `system_catalog`）
+3. 以 `rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_agg` / `_amortized_agg` 當快速對帳或彙總來源
 4. 由 Databricks 正規化成 `cost_fact`
 5. 只有 current month 或 view replay 才回頭打 REST API
 
@@ -327,17 +327,15 @@ Azure Cost Management Query API 的 **per-scope limit 是 4 requests/minute**。
 
 目前若要做每月 2 號對帳，且已知 **D-2 以上的費用才準確**，比較推薦直接把下列表當成主來源：
 
-> **Catalog 說明：** Azure 平台資料存在兩個 catalog：`system_catalog`（整體平台）與 `rag_analyst_catalog`（特定專案 / 分析用）。  
-> Genie NL 查詢時會自動選擇，**以 Genie 實際生成的 SQL 為準**；直接 SQL 查詢時視需求選用。
+> **Catalog 說明：** Genie NL 查詢時以 `rag_analyst_catalog` 為主要 Azure 平台資料來源；部分整體查詢可能選用 `system_catalog`。  
+> **以 Genie 實際生成的 SQL 為準**；直接 SQL 查詢時優先選用 `rag_analyst_catalog`。
 
 | Table | 建議用途 |
 | --- | --- |
-| `system_catalog.system_report.daily_azure_cost_usage_actual` | Actual 明細（整體平台）|
-| `system_catalog.system_report.daily_azure_cost_usage_amortized` | Amortized 明細（整體平台）|
-| `rag_analyst_catalog.system_report.daily_azure_cost_usage_actual` | Actual 明細（分析 / 特定專案）|
-| `rag_analyst_catalog.system_report.daily_azure_cost_usage_amortized` | Amortized 明細（分析 / 特定專案）|
-| `system_catalog.system_report.daily_azure_cost_usage_actual_agg` | Actual 彙總 / 快速對帳 |
-| `system_catalog.system_report.daily_azure_cost_usage_amortized_agg` | Amortized 彙總 / 快速對帳 |
+| `rag_analyst_catalog.system_report.daily_azure_cost_usage_actual` | Actual 明細 |
+| `rag_analyst_catalog.system_report.daily_azure_cost_usage_amortized` | Amortized 明細 |
+| `rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_agg` | Actual 彙總 / 快速對帳 |
+| `rag_analyst_catalog.system_report.daily_azure_cost_usage_amortized_agg` | Amortized 彙總 / 快速對帳 |
 
 建議原則：
 

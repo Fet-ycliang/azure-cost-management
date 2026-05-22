@@ -14,7 +14,7 @@ disable-model-invocation: false
 ## Chapter 01 — 帳單確認
 
 確認兩個 tenant 帳單已更新：
-- `system_catalog` / `rag_analyst_catalog`（Azure 平台）
+- `rag_analyst_catalog` / `system_catalog`（Azure 平台，以 Genie 實際 SQL 為準）
 - `rag_develop_catalog`（M365 + Fabric）
 
 ## Chapter 02 — Gate 驗證（六道關卡）
@@ -35,7 +35,7 @@ Gate 結果存入 `gate-status.json`（專案根目錄）。
 
 ## Chapter 03 — 第一份：Azure 平台各服務費用
 
-- 來源：`system_catalog`（或 `rag_analyst_catalog`，以 Genie 實際 SQL 為準），口徑：**混合**
+- 來源：`rag_analyst_catalog`（以 Genie 實際 SQL 為準，部分整體查詢可能用 `system_catalog`），口徑：**混合**
   - Azure Databricks → AmortizedCost
   - 其他所有服務（含 Unassigned）→ ActualCost
 - period = 當月首日（如 `'2026-04-01'`）

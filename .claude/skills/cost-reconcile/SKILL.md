@@ -26,11 +26,8 @@ Genie 底層使用預聚合 view（非原始 actual/amortized 表），欄位均
 | `Datasource` | `datasource` |
 
 View 表名：
-- Azure 平台（整體）：`system_catalog.system_report.daily_azure_cost_usage_actual_view`（或 `_amortized_view`）
-- Azure 平台（分析/特定專案）：`rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_view`（或 `_amortized_view`）
+- Azure 平台：`rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_view`（或 `_amortized_view`）；部分整體查詢 Genie 可能選用 `system_catalog`，**以實際生成的 SQL 為準**
 - M365 平台：`rag_develop_catalog.system_report.daily_azure_cost_usage_actual_view`（或 `_amortized_view`）
-
-> Genie 查詢時會自動選用 `system_catalog` 或 `rag_analyst_catalog`，**以實際生成的 SQL 為準**。
 
 ## 核心計費口徑原則
 
@@ -58,7 +55,7 @@ Databricks 走預繳 / Reservation，ActualCost 可能為 0，必須用 Amortize
 
 ### Step 1 — 確認 source 規則
 
-- `source='Azure'`：查 `system_catalog` 或 `rag_analyst_catalog`（Genie 自動選擇），依 resource_group_name 或 purpose tag 篩選
+- `source='Azure'`：查 `rag_analyst_catalog`（或 `system_catalog`，以 Genie 實際 SQL 為準），依 resource_group_name 或 purpose tag 篩選
 - `source='Databricks'`：查 AmortizedCost，依 purpose tag 篩選
 - `source='由下一筆反推'`：Azure 費用 = 總費用 - Databricks，VMs 通常未標 tag
 
