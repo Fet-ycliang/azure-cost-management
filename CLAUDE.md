@@ -78,6 +78,7 @@
   - `CostInBillingCurrency` → `total_cost`、`Tags['Purpose']` → `purpose`（已小寫）、`ResourceGroup` → `resource_group_name`、`ServiceName` → `service_name`
   - 詳細對照：`.cache/views-mapping/refs/db-schema-mapping.md`
 - **datasource 過濾**：`rag_develop_catalog` 同時含 m365 和 fabric，查詢時必加 `datasource='m365'` 或 `'fabric'`。
+- **Azure 平台 catalog**：Azure 平台資料一律使用 `rag_analyst_catalog`（表已從 `system_catalog` 搬移）。直接 SQL 查詢時使用 `rag_analyst_catalog.system_report.daily_azure_cost_usage_*`。
 - Genie space config 範例問題若出現 0 結果，可能是引用了已刪除欄位（view 欄位數量有優化）。
 
 ## Tag 標準規範
@@ -97,6 +98,16 @@
 - **fill_rg_tags.py / azure_cost_tag_apply 只補真正缺漏的 key**（`workload`、`owner`），不重複寫舊 key 的新命名版本。
 
 ## 開發踩坑規則（Epic 2–4 整合後更新）
+
+### 文件跨檔案術語更新 SOP（2026-05）
+- **跨檔案術語更新前，必須先執行全域 grep**，不能只改幾個已知檔案：
+  ```powershell
+  grep -rn "舊術語" --include="*.md" .
+  ```
+  必掃範圍：`CLAUDE.md`、`README.md`、`.claude/**/*.md`（含 `worktrees/` 副本）。
+- **`.claude/worktrees/` 有各 worktree branch 的副本**，主文件更新後必須一併更新；否則 worktree branch 仍保有舊術語，下次 agent 讀取時會拿到過期資料。
+- **「備注/二線」用法不是安全的**：若某功能已廢棄（例如 `system_catalog` 表已搬移），連「或舊名稱」這類備注也應一起刪除。舊位置不可用，保留備注只會造成混淆並需要多輪清理。
+- **Skill 文件的三個藏雷位置**：說明文字、SQL 範例、Genie 問法 prompt 三處都可能殘留舊術語，更新時三處都要掃。
 
 ### 路徑慣例
 - **`.cache/`** 是 gitignored 的暫存目錄；可執行腳本必須放在 **`scripts/`**（repo 根目錄），不要放進 `.cache/`。
@@ -195,21 +206,18 @@
 - 規則適用範圍：所有 RG 下的 ADB workspace，不論 `Purpose` 是否已存在。
 
 ### current_tags 快照更新腳本
-手動刷新單一 RG 的快照並 patch desired JSON：
-```python
-import json, subprocess
-AZ = 'az.cmd'
-resources = json.loads(subprocess.run(
-    [AZ, 'resource', 'list', '--subscription', SID, '--resource-group', RG],
-    capture_output=True, text=True).stdout)
-lookup = {r['id']: r.get('tags') or {} for r in resources}
-data = json.loads(open(f'.cache/tag-inventory/desired/{RG}.json', encoding='utf-8').read())
-for e in data:
-    if e['resource_id'] in lookup:
-        e['current_tags'] = lookup[e['resource_id']]
-open(f'.cache/tag-inventory/desired/{RG}.json', 'w', encoding='utf-8').write(
-    json.dumps(data, ensure_ascii=False, indent=2))
+使用正式腳本更新，支援全部或單一 RG，並自動統一格式（`id` → `resource_id`）：
+```bash
+# 全部更新
+python scripts/refresh_current_tags.py
+
+# 單一 RG
+python scripts/refresh_current_tags.py --rg <rg-name>
 ```
+
+**格式規範（desired JSON 標準欄位）：**
+`resource_id`, `name`, `type`, `current_tags`, `desired_tags`
+- 舊格式有 `id` + `resource_group` 欄位（如 fabric-prod-rg 初版），`refresh_current_tags.py` 執行時會自動正規化。
 
 ## Windows 開發環境注意
 
@@ -237,4 +245,5 @@ open(f'.cache/tag-inventory/desired/{RG}.json', 'w', encoding='utf-8').write(
 - Tag 批次填值：`scripts\fill_rg_tags.py`（`--dry-run` 先確認再執行；`--overwrite` 強制覆蓋已有值）
 - Tag 批次套用：`scripts\apply_rg_tags.py --rg <rg> [--dry-run]`（空字串 desired 自動跳過）
 - 小寫 tag 刪除：`scripts\remove_lowercase_tags.py --rg <rg> [--dry-run]`（需先刷新 current_tags 快照）
+- **current_tags 刷新：`scripts\refresh_current_tags.py [--rg <rg>]`**（全部或單一 RG，自動正規化格式）
 

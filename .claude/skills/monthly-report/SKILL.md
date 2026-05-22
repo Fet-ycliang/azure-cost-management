@@ -14,7 +14,7 @@ disable-model-invocation: false
 ## Chapter 01 — 帳單確認
 
 確認兩個 tenant 帳單已更新：
-- `system_catalog`（Azure 平台）
+- `rag_analyst_catalog`（Azure 平台）
 - `rag_develop_catalog`（M365 + Fabric）
 
 ## Chapter 02 — Gate 驗證（六道關卡）
@@ -35,7 +35,7 @@ Gate 結果存入 `gate-status.json`（專案根目錄）。
 
 ## Chapter 03 — 第一份：Azure 平台各服務費用
 
-- 來源：`system_catalog`，口徑：**混合**
+- 來源：`rag_analyst_catalog`，口徑：**混合**
   - Azure Databricks → AmortizedCost
   - 其他所有服務（含 Unassigned）→ ActualCost
 - period = 當月首日（如 `'2026-04-01'`）
@@ -95,10 +95,10 @@ GROUP BY service_name，
 依金額降序排列。
 ```
 
-### 第一份：Azure 平台（system_catalog）
+### 第一份：Azure 平台（rag_analyst_catalog）
 ```
 步驟1：問 ActualCost 全服務
-「在 system_catalog ActualCost 中，查 period='2026-04-01'，
+「在 rag_analyst_catalog ActualCost 中，查 period='2026-04-01'，
 GROUP BY service_name，SUM(total_cost) 降序排列，全部列出包含 Unassigned」
 
 步驟2（followup 延伸）：

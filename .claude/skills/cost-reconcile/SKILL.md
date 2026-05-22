@@ -26,7 +26,7 @@ Genie 底層使用預聚合 view（非原始 actual/amortized 表），欄位均
 | `Datasource` | `datasource` |
 
 View 表名：
-- Azure 平台：`system_catalog.system_report.daily_azure_cost_usage_actual_view`（或 `_amortized_view`）
+- Azure 平台：`rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_view`（或 `_amortized_view`）
 - M365 平台：`rag_develop_catalog.system_report.daily_azure_cost_usage_actual_view`（或 `_amortized_view`）
 
 ## 核心計費口徑原則
@@ -55,7 +55,7 @@ Databricks 走預繳 / Reservation，ActualCost 可能為 0，必須用 Amortize
 
 ### Step 1 — 確認 source 規則
 
-- `source='Azure'`：查 `system_catalog`，依 resource_group_name 或 purpose tag 篩選
+- `source='Azure'`：查 `rag_analyst_catalog`，依 resource_group_name 或 purpose tag 篩選
 - `source='Databricks'`：查 AmortizedCost，依 purpose tag 篩選
 - `source='由下一筆反推'`：Azure 費用 = 總費用 - Databricks，VMs 通常未標 tag
 
@@ -69,7 +69,7 @@ Databricks 走預繳 / Reservation，ActualCost 可能為 0，必須用 Amortize
 
 ```sql
 SELECT DISTINCT purpose, COUNT(*) as cnt
-FROM system_catalog.system_report.daily_azure_cost_usage_actual_view
+FROM rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_view
 WHERE period = '2026-04-01'
   AND resource_group_name IN (...)
 GROUP BY purpose
@@ -112,14 +112,14 @@ period='YYYY-MM-01'，
 ```sql
 -- AmortizedCost (Databricks)
 SELECT SUM(total_cost) 
-FROM system_catalog.system_report.daily_azure_cost_usage_amortized_view
+FROM rag_analyst_catalog.system_report.daily_azure_cost_usage_amortized_view
 WHERE period = '2026-04-01'
   AND purpose IN ('purpose_value')
   AND service_name = 'Azure Databricks'
 
 -- ActualCost (Azure 一般服務)
 SELECT SUM(total_cost)
-FROM system_catalog.system_report.daily_azure_cost_usage_actual_view
+FROM rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_view
 WHERE period = '2026-04-01'
   AND purpose IN ('purpose_value')
   AND service_name != 'Azure Databricks'
@@ -128,7 +128,7 @@ WHERE period = '2026-04-01'
 ### ResourceGroup 查詢
 ```sql
 SELECT SUM(total_cost)
-FROM system_catalog.system_report.daily_azure_cost_usage_actual_view
+FROM rag_analyst_catalog.system_report.daily_azure_cost_usage_actual_view
 WHERE period = '2026-04-01'
   AND resource_group_name IN ('rg-name-1', 'rg-name-2')
 ```
