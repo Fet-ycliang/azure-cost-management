@@ -103,6 +103,7 @@ description: >
 - **多支 aggregated query 不能視為可無損回拼的明細表**；若 query grain 不一致，最多只能在報表層並排分析
 - **若後續要把資料落成可再切維度的 fact table，優先選欄位數夠的單次查詢；不夠就改走 exports / FOCUS**
 - **若已有 Databricks `rag_analyst_catalog.system_report.daily_azure_cost_usage_*` tables，月結與 D-2 對帳優先直接查這組表，不要再把 exports 當預設主來源**
+- **`rag_analyst_catalog` 是唯一的 Azure 平台 Databricks catalog（2026-05 確認）**：原 `system_catalog` 的所有 daily cost tables 已搬移至 `rag_analyst_catalog`；`system_catalog` 已廢棄，不應再出現於任何查詢或文件說明。
 - **`*_actual` / `*_actual_agg` 與 `*_amortized` / `*_amortized_agg` 應分工使用：detail 表做歸屬與回溯，agg 表做快速對帳與 summary**
 
 ## Budget 對照表前提

@@ -99,6 +99,16 @@
 
 ## 開發踩坑規則（Epic 2–4 整合後更新）
 
+### 文件跨檔案術語更新 SOP（2026-05）
+- **跨檔案術語更新前，必須先執行全域 grep**，不能只改幾個已知檔案：
+  ```powershell
+  grep -rn "舊術語" --include="*.md" .
+  ```
+  必掃範圍：`CLAUDE.md`、`README.md`、`.claude/**/*.md`（含 `worktrees/` 副本）。
+- **`.claude/worktrees/` 有各 worktree branch 的副本**，主文件更新後必須一併更新；否則 worktree branch 仍保有舊術語，下次 agent 讀取時會拿到過期資料。
+- **「備注/二線」用法不是安全的**：若某功能已廢棄（例如 `system_catalog` 表已搬移），連「或舊名稱」這類備注也應一起刪除。舊位置不可用，保留備注只會造成混淆並需要多輪清理。
+- **Skill 文件的三個藏雷位置**：說明文字、SQL 範例、Genie 問法 prompt 三處都可能殘留舊術語，更新時三處都要掃。
+
 ### 路徑慣例
 - **`.cache/`** 是 gitignored 的暫存目錄；可執行腳本必須放在 **`scripts/`**（repo 根目錄），不要放進 `.cache/`。
 
