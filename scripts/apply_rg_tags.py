@@ -20,6 +20,16 @@ from pathlib import Path
 
 AZ = "az.cmd" if platform.system() == "Windows" else "az"
 
+# 這些 RG pattern 由系統管理，有 deny assignment，永遠跳過
+SKIP_RG_PREFIXES = (
+    "databricks-rg-",
+    "mc_",                        # AKS managed node RG
+    "networkwatcherrg",
+    "defaultresourcegroup-",
+    "synapseworkspace-managedrg-", # Synapse managed RG
+    "azureapp-auto-alerts-",       # Azure Monitor auto-alert RG
+)
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -48,6 +58,18 @@ def main() -> int:
         resource_id = e.get("resource_id") or e.get("id") or ""
         if not resource_id:
             print(f"  [skip] 無 resource_id，略過 {e.get('name')}")
+            skip += 1
+            continue
+
+        # 跳過系統管理的 RG（有 deny assignment，無法寫 tag）
+        rid_lower = resource_id.lower()
+        rg_part = ""
+        try:
+            rg_part = rid_lower.split("/resourcegroups/")[1].split("/")[0]
+        except IndexError:
+            pass
+        if any(rg_part.startswith(p) for p in SKIP_RG_PREFIXES):
+            print(f"  [skip] 系統管理 RG ({rg_part})，略過 {e.get('name')}")
             skip += 1
             continue
         tag_pairs = " ".join(f'"{k}={v}"' for k, v in to_add.items())
