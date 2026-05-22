@@ -195,21 +195,18 @@
 - 規則適用範圍：所有 RG 下的 ADB workspace，不論 `Purpose` 是否已存在。
 
 ### current_tags 快照更新腳本
-手動刷新單一 RG 的快照並 patch desired JSON：
-```python
-import json, subprocess
-AZ = 'az.cmd'
-resources = json.loads(subprocess.run(
-    [AZ, 'resource', 'list', '--subscription', SID, '--resource-group', RG],
-    capture_output=True, text=True).stdout)
-lookup = {r['id']: r.get('tags') or {} for r in resources}
-data = json.loads(open(f'.cache/tag-inventory/desired/{RG}.json', encoding='utf-8').read())
-for e in data:
-    if e['resource_id'] in lookup:
-        e['current_tags'] = lookup[e['resource_id']]
-open(f'.cache/tag-inventory/desired/{RG}.json', 'w', encoding='utf-8').write(
-    json.dumps(data, ensure_ascii=False, indent=2))
+使用正式腳本更新，支援全部或單一 RG，並自動統一格式（`id` → `resource_id`）：
+```bash
+# 全部更新
+python scripts/refresh_current_tags.py
+
+# 單一 RG
+python scripts/refresh_current_tags.py --rg <rg-name>
 ```
+
+**格式規範（desired JSON 標準欄位）：**
+`resource_id`, `name`, `type`, `current_tags`, `desired_tags`
+- 舊格式有 `id` + `resource_group` 欄位（如 fabric-prod-rg 初版），`refresh_current_tags.py` 執行時會自動正規化。
 
 ## Windows 開發環境注意
 
@@ -237,4 +234,5 @@ open(f'.cache/tag-inventory/desired/{RG}.json', 'w', encoding='utf-8').write(
 - Tag 批次填值：`scripts\fill_rg_tags.py`（`--dry-run` 先確認再執行；`--overwrite` 強制覆蓋已有值）
 - Tag 批次套用：`scripts\apply_rg_tags.py --rg <rg> [--dry-run]`（空字串 desired 自動跳過）
 - 小寫 tag 刪除：`scripts\remove_lowercase_tags.py --rg <rg> [--dry-run]`（需先刷新 current_tags 快照）
+- **current_tags 刷新：`scripts\refresh_current_tags.py [--rg <rg>]`**（全部或單一 RG，自動正規化格式）
 
