@@ -188,6 +188,12 @@
 - 只有**已 review** 的 RG 才加入 `scripts/analyze_tag_gaps.py` 的 `REVIEWED_RG_PURPOSE_MAP` 做 mismatch 檢查；未 review 的 RG 先不要報 `Purpose 不符`，避免誤判。
 - 已確認：`TO-ABD360 / fet-ids-prod-rg` → `CostCenter=6251`、`Purpose=fet-ids`
 
+### Databricks Workspace 不加 Purpose
+- **`Microsoft.Databricks/workspaces` 一律不補 `Purpose` tag**。
+- Databricks workspace 由平台服務管理，`databricks-cluster` 等系統 tag 由服務自動維護；`Purpose` 在此層級無意義且可能被服務覆蓋。
+- apply_rg_tags.py 建立 desired JSON 時，ADB workspace 的 `desired_tags.Purpose` 設為空字串（`""`）跳過。
+- 規則適用範圍：所有 RG 下的 ADB workspace，不論 `Purpose` 是否已存在。
+
 ### current_tags 快照更新腳本
 手動刷新單一 RG 的快照並 patch desired JSON：
 ```python
@@ -209,6 +215,7 @@ open(f'.cache/tag-inventory/desired/{RG}.json', 'w', encoding='utf-8').write(
 
 - **hooks 裡使用 jq**：Windows 上 jq 輸出會帶 `\r`（carriage return），pipe 取檔案路徑時需加 `| tr -d '\r'`，否則 Python 等工具會收到帶 `\r` 的路徑而報錯。
 - **`uv run` 被執行中的 server 鎖住**：MCP server 執行中時，`uv run python scripts/xxx.py` 會失敗（`error: failed to remove file azure-cost-mcp.exe: 程序無法存取檔案`），因為 uv 試圖更新鎖定中的 `.exe`。**Fix**：改用 `python scripts/xxx.py` 直接呼叫，不透過 `uv run`。
+- **部分 Azure 子資源不支援 tag PATCH**：`Microsoft.Automation/automationAccounts/runbooks` 中某些 runbook 執行 `az tag update` 會回傳 `ProviderError: The requested resource does not support http method 'PATCH'`。這是平台限制，非腳本 bug；`apply_rg_tags.py` 已有 `[error]` 繼續執行的機制，此類資源直接略過即可。
 - **Resource ID 含括號時 subprocess list form 會失敗**：`az.cmd` 在 Windows 上透過 cmd.exe 執行，括號 `(` `)` 是 CMD 的群組字元。呼叫 `az` 時若 resource ID 含括號（如 `ContainerInsights(xxx)`、`SecurityCenterFree(xxx)`），用 list form 傳入參數，cmd.exe 仍會解析括號導致 "不應有 --operation / --query" 等錯誤。**Fix**：改用 `shell=True` 並以雙引號包裹 resource ID 與含特殊字元的 tag 值：
   ```python
   tag_str = ' '.join(f'"{k}={v}"' for k, v in to_add.items())
