@@ -24,12 +24,14 @@ from .databricks_mcp import DatabricksMcpClient, DatabricksMcpClientError
 from .embedding import DatabricksEmbeddingClient
 from .formatting import to_response
 from .lakebase import LakebaseClient
+from .learn import LearnSearchClient, LearnSearchError
 from .models import (
     ConnectionValidationParams,
     CostTrendParams,
     DatabricksQueryParams,
     DatabricksQuerySource,
     DepartmentCostParams,
+    LearnSearchParams,
     ResponseOptions,
     SavingsRecommendationParams,
     StorageExportsParams,
@@ -74,6 +76,7 @@ IMPLEMENTED_TOOLS = [
     "azure_cost_tag_apply",
     "azure_cost_embed_tags",
     "azure_cost_tag_suggest",
+    "azure_cost_learn_search",
 ]
 
 def _to_float(value: Any) -> float:
@@ -1622,5 +1625,44 @@ def create_mcp_server(settings: Settings | None = None) -> FastMCP:
             "suggestions": suggestions,
         }
         return to_response("Tag 相似性建議", payload, params.response_format)
+
+    learn_client = LearnSearchClient()
+
+    @mcp.tool(
+        name="azure_cost_learn_search",
+        annotations={
+            "title": "搜尋 Microsoft Learn 文件",
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "idempotentHint": True,
+            "openWorldHint": True,
+        },
+    )
+    async def azure_cost_learn_search(params: LearnSearchParams) -> str:
+        """搜尋 Microsoft Learn 官方文件或互動課程模組。
+
+        呼叫 learn.microsoft.com 公開 Search API（免認證）。
+        適用於查詢 Azure 服務文件、Cost Management 說明、
+        Databricks 操作指南、FinOps 最佳實踐等資訊。
+        """
+        try:
+            results = await learn_client.search(
+                params.query,
+                top=params.top,
+                locale=params.locale,
+                category_filter=params.category_filter,
+            )
+        except LearnSearchError as exc:
+            payload = {"status": "error", "reason": str(exc), "results": []}
+            return to_response("Microsoft Learn 搜尋", payload, params.response_format)
+
+        payload: dict[str, Any] = {
+            "query": params.query,
+            "locale": params.locale,
+            "category_filter": params.category_filter or "（全部）",
+            "result_count": len(results),
+            "results": results,
+        }
+        return to_response("Microsoft Learn 搜尋", payload, params.response_format)
 
     return mcp
