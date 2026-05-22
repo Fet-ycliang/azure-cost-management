@@ -82,6 +82,7 @@
 
 ## Tag 標準規範
 
+- **owner tag 格式**：`姓名 (行動電話簡碼)`，例如 `Ralph Liang (527714)`。括號內的 6 位數字是員工的**行動電話簡碼**（公司內部短碼），不是員工編號，也不是其他 ID 系統。
 - **Environment 標準值**：`dev` / `bst` / `prod`（`bst` = BST staging，對應舊 `EnvType` 的 `Staging`）
 - 舊 `EnvType` 值對照：`Develop`→`dev`、`Staging`→`bst`、`Production`→`prod`
 - Tag key 全小寫 snake_case；Value 小寫連字號（如 `ai-verse`）
