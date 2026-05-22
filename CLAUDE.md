@@ -152,10 +152,40 @@
 - 命名推導規則：`<parent-name>-endpoint` → 母資源為 `<parent-name>`；`<parent-name>-endpoint-nic` → 同上。
 - **先補母資源，再補 NIC/PEP**，避免繼承到空值。
 
+### Tag value 前導/尾綴空白（Leading Whitespace）
+- **Azure 不清洗 tag 值的空白**：`' Digital'`（前有空格）和 `'Digital'` 是完全不同的值，`az resource list` 會回傳兩個不同的 bucket，漏補的那群資源不會被偵測到。
+- **修正方式**：在 desired_tags 中明確設 `"Purpose": "Digital"`（不含空白），apply_rg_tags.py 的 Merge 操作會自動覆蓋帶空白的舊值。
+- **掃描時主動偵測**：分群時先 `p.strip()` 再比對，或在結果中列印 `repr(p)` 看是否有不可見字元。
+
+### 多 Purpose 共用 RG 處理策略
+- **大型共用 RG**（如 ABD360-RG，200+ 資源、多種 Purpose/CC）的正確流程：
+  1. `az resource list` 取完整清單存為 raw JSON
+  2. 按 `Purpose` tag 分群，列出各群資源數及 CC/owner 現況
+  3. **逐群確認** CC / owner / EnvType 後再建 desired JSON
+  4. 一次性 apply，不要分批手動改
+- **不要依賴先前的估算數字**：每次都用新鮮 `az resource list` 掃描的結果建 desired JSON。
+
+### 資源數量估算落差（cdp 踩坑）
+- 早期估算 cdp 14 筆，實際掃描 31 筆。差距來自 **PEP、NIC、NSG、Disk、ACR endpoint** 等子資源常被初步分析遺漏。
+- **規則**：永遠用新鮮 `az resource list` 的實際清單為準，不要用口頭估算數字建 desired JSON。
+
+### 同名不同 type 資源（name 衝突）
+- 同一 RG 中可能有同名但不同 resource type 的資源（例如 `recommend-vault` 同時是 Key Vault 本體和 DNS private zone 子資源），Python 迴圈**必須用 `resource_id`（完整 ARM path）識別**，絕不能用 `name` 去重或比對。
+
+### Databricks auto-created NSG
+- `databricksnsg*` 是 Databricks workspace 自動建立的 NSG，Purpose 通常繼承自 workspace 的 tag。
+- **不要強設 EnvType**：這類資源沒有明確的環境歸屬，只需補 `CostCenter` 和 `owner`，EnvType 留空（`""`）跳過。
+
 ### Purpose 值與 CostCenter 對應規則
 - `CostCenter=3101` → `Purpose=31_ai_lab`（非 `ai_lab`，非 `OperationAI`）
 - `CostCenter=3901` → `Purpose=ai_verse`（非 `ai_lab`，非 `ids-bot`）
 - 舊值對照：`OperationAI` → `31_ai_lab`；`ids-bot` → `ai_verse`；`ai_lab`（3101）→ `31_ai_lab`
+
+### Purpose 預設值規則
+- `Purpose` 預設值以 **resource group** 為單位維護，不以 `CostCenter` 做全域推導。
+- 大多數 RG 的 `Purpose` 一旦定案通常不變；只有少數**共用型 RG** 會允許多個合法值。
+- 只有**已 review** 的 RG 才加入 `scripts/analyze_tag_gaps.py` 的 `REVIEWED_RG_PURPOSE_MAP` 做 mismatch 檢查；未 review 的 RG 先不要報 `Purpose 不符`，避免誤判。
+- 已確認：`TO-ABD360 / fet-ids-prod-rg` → `CostCenter=6251`、`Purpose=fet-ids`
 
 ### current_tags 快照更新腳本
 手動刷新單一 RG 的快照並 patch desired JSON：

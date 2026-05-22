@@ -624,8 +624,14 @@ uv run --group test pytest --cov-report=term-missing
 - **實作重點**：
   - 輸入：`.cache/tag-inventory/YYYY-MM-DD/{subscription_id}.json`
   - 輸出：`.cache/tag-inventory/obsidian/{subscription}/{rg}.md`
-  - YAML frontmatter：`rg, subscription, snapshot_date, total_resources, tagged, untagged, required_tags`
-  - 資源 table：`name, type, 各 required tag key 的值（空白則標 _(缺)_）`
+  - YAML frontmatter：`rg, subscription, subscription_name, tenant_id, charge_model, snapshot_date, total_resources, tagged, untagged, cost_status, cost_period, required_tags`
+  - RG 頁結構：
+    - 頁首固定有 vault 回鏈
+    - 先顯示 `Tenant / Subscription / RG` 所屬脈絡
+    - 帳務歸屬（`單一 CostCenter 掛帳` / `Cross CostCenter 拆帳` / `待確認`）
+    - 成本摘要（已對應 project 成本；沒有 mapping 時顯示「整理中」）
+    - Tag 關聯（連到 CostCenter / Purpose / owner / EnvType graph notes）
+    - 兩個資源表格：`一致`、`需檢查或確認`
 - **相依 PBI**：PBI 1.2
 - **驗收條件**：
   - gstack 初驗：`python -m http.server` + headless browser 開啟，截圖確認 frontmatter 表格與缺漏標記正確
@@ -635,11 +641,21 @@ uv run --group test pytest --cov-report=term-missing
 
 #### PBI 2.2 — 總索引與 tag gap 分析
 
-- **目標**：產出跨 RG 的總覽，讓使用者快速看出哪個 RG tag 覆蓋率最差
+- **目標**：產出跨 RG 的總覽，並讓使用者從單一入口展開 `RG ↔ project 成本關係`
 - **關鍵檔案**：`scripts/gen_tag_inventory_md.py`（同 PBI 2.1 腳本）
 - **實作重點**：
-  - `_index.md`：各 RG 覆蓋率總表，按覆蓋率由低到高排序
-  - `tag-gap-summary.md`：缺漏最多的資源 Top 20（附 resource_id 與缺哪些 tag）
+  - root `_index.md`：Obsidian vault 的唯一主入口
+  - 主軸先按 **Tenant → Subscription → RG** 展開，再進入成本與治理視角
+  - `_index.md` 內至少有三個入口：
+    - `已對應`：已找到 `RG ↔ project 成本` 關係的 RG
+    - `需檢查或確認`：尚未整理完成的 RG
+    - `tag-gap-summary.md`、`tag-graph/index.md` 的功能入口
+  - `已對應 / 需檢查或確認` 兩區都會標示 `charge_model`，用來區分：
+    - `單一 CostCenter 掛帳`
+    - `Cross CostCenter 拆帳`
+    - `待確認`
+  - `tag-gap-summary.md`：缺漏最多的資源 Top 20，並可直接連回對應 RG 頁
+  - `tag-graph/index.md`：從 CostCenter 展開到 Purpose / owner / EnvType / Resource Groups 的 graph 入口
 - **相依 PBI**：PBI 2.1
 - **驗收條件**：gstack 截圖 `_index.md` 確認排序與連結正確
 
@@ -818,9 +834,10 @@ uv run --group test pytest --cov-report=term-missing
 [.cache/tag-inventory/YYYY-MM-DD/{sub}.json]  ← 原始快取
         ↓ gen_tag_inventory_md.py
 [.cache/tag-inventory/obsidian/]              ← Obsidian Vault 目錄
-  ├── _index.md                               ← RG 覆蓋率總表
-  ├── {subscription}/{rg}.md                 ← 每個 RG 一份 md
-  └── tag-gap-summary.md                     ← 缺漏資源 Top 20
+  ├── _index.md                               ← Vault 唯一主入口（Tenant → Subscription → RG → 成本/治理）
+  ├── {subscription}/{rg}.md                 ← 每個 RG 一份 md（tenant/subscription、charge model、成本摘要、tag graph、一致/需檢查）
+  ├── tag-gap-summary.md                     ← 缺漏資源 Top 20
+  └── tag-graph/index.md                     ← CostCenter graph 入口
         ↓ 產出範本
 [.cache/tag-inventory/desired/{rg}.json]      ← 期望狀態（使用者填寫）
 
