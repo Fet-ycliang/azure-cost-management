@@ -96,13 +96,13 @@ description: >
 - **費用查詢的日界線與月界線一律以 GMT/UTC 00:00 為準**；`今天`、`昨天`、`上個月` 這類相對時間都要先換成 UTC 再判斷
 - **Asia/Taipei 的 00:00~08:00 期間特別容易差一天**；這段時間若直接問相對時間，結果可能仍落在前一個 UTC 日
 - **做 reconciliation、排程或月結驗證時，優先明確指定月份（例如 `2026 年 4 月`）或明確以 UTC date 計算**，不要只依賴未標時區的相對時間
-- **Genie 做 ActualCost 驗證時，要明確指定平台 / scope（例如 `Azure 平台 Virtual Machines`、`Azure 平台 Storage`）**；否則可能被擴成跨 `system_catalog`（或 `rag_analyst_catalog`）與 `rag_develop_catalog` 的 union 查詢
+- **Genie 做 ActualCost 驗證時，要明確指定平台 / scope（例如 `Azure 平台 Virtual Machines`、`Azure 平台 Storage`）**；否則可能被擴成跨 `rag_analyst_catalog` 與 `rag_develop_catalog` 的 union 查詢
 - **若 VM / Storage 的 ActualCost mismatch 只集中在少數高點日期，先查 `PricingModel = 'Reservation'` 的每日明細**；若金額與 diff 對齊，通常代表 REST view / 對應 query 漏了 Reservation 成本
 - **若要從 ActualCost 每日總額中排除 Reservation，不要用 `MINUS` 去減「Reservation 每日總額」**；因為總額列與 Reservation 列金額不同，通常不會被消掉。應直接 filter `PricingModel != 'Reservation'`，或按日期先算總額再減 Reservation 金額
 - **`M365_COST_MANAGEMENT_*` 可作為 operator-run 驗證流程的設定來源**；`Settings` 已可讀取這組變數，但完整的 M365 對帳流程仍未正式產品化成 repo 內 tool
 - **多支 aggregated query 不能視為可無損回拼的明細表**；若 query grain 不一致，最多只能在報表層並排分析
 - **若後續要把資料落成可再切維度的 fact table，優先選欄位數夠的單次查詢；不夠就改走 exports / FOCUS**
-- **若已有 Databricks `system_catalog`（或 `rag_analyst_catalog`）`.system_report.daily_azure_cost_usage_*` tables，月結與 D-2 對帳優先直接查這組表，不要再把 exports 當預設主來源**
+- **若已有 Databricks `rag_analyst_catalog.system_report.daily_azure_cost_usage_*` tables，月結與 D-2 對帳優先直接查這組表，不要再把 exports 當預設主來源**
 - **`*_actual` / `*_actual_agg` 與 `*_amortized` / `*_amortized_agg` 應分工使用：detail 表做歸屬與回溯，agg 表做快速對帳與 summary**
 
 ## Budget 對照表前提

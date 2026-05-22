@@ -78,7 +78,7 @@
   - `CostInBillingCurrency` → `total_cost`、`Tags['Purpose']` → `purpose`（已小寫）、`ResourceGroup` → `resource_group_name`、`ServiceName` → `service_name`
   - 詳細對照：`.cache/views-mapping/refs/db-schema-mapping.md`
 - **datasource 過濾**：`rag_develop_catalog` 同時含 m365 和 fabric，查詢時必加 `datasource='m365'` 或 `'fabric'`。
-- **Azure 平台 catalog 實際情況**：Genie 以 `rag_analyst_catalog` 作為 Azure 平台主要資料來源；部分整體費用查詢可能自動選用 `system_catalog`。**以 Genie 實際生成的 SQL 為準**，不要假設只有 `system_catalog`；直接 SQL 查詢時優先選用 `rag_analyst_catalog`。
+- **Azure 平台 catalog**：Azure 平台資料一律使用 `rag_analyst_catalog`（表已從 `system_catalog` 搬移）。直接 SQL 查詢時使用 `rag_analyst_catalog.system_report.daily_azure_cost_usage_*`。
 - Genie space config 範例問題若出現 0 結果，可能是引用了已刪除欄位（view 欄位數量有優化）。
 
 ## Tag 標準規範
