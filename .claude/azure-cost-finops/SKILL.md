@@ -318,6 +318,31 @@ Genie space 底層使用預聚合 view（`daily_azure_cost_usage_actual_view` / 
 
 5. **結果可疑先讀 SQL**：Genie 回應的 SQL 在 `attachments[].query.query`，不在頂層。若數字異常，先讀 SQL 確認 WHERE 條件，再決定是否補充說明重查。
 
+## Azure Advisor VM Right-sizing 作業流程
+
+### 查詢建議
+- 使用 `azure-advisor` tool，設定 `category=Cost`、`impact=High` 取得高影響力建議。
+- recommendation type `e10b1381-...` = "Right-size or shutdown underutilized virtual machines"。
+- 建議的 SKU 在 `extendedProperties.recommendedSku`，年節費在 `extendedProperties.annualSavingsAmount`。
+
+### 執行原則
+- **先 dev，觀察 1–2 週後再執行 prod**：Advisor 建議不代表可立即操作 prod 環境。
+- 執行前確認 VM 未在執行關鍵批次作業（resize 會觸發重開機）。
+- 使用 abd-adls SP（Contributor on TO-ABD360）執行 resize 時，需先 SP 登入，完成後重新 `az login` 恢復 user session。
+
+### 已確認的優化機會（2026-05）
+
+| RG | VM | 現 SKU | 建議 SKU | 年節費（USD） |
+|---|---|---|---|---|
+| op-rg-develop | az-ddpbitb601t | E32ds_v4 | E20ds_v4 | $9,024 ✅ 已執行 |
+| op-rg-develop | az-opmon601t | E2as_v4 | D2ads_v5 | $204 |
+| op-rg-prod | az-ddpbitb601p | E32ds_v4 | E16-4ads_v5 | $13,068 |
+| op-rg-prod | az-airflow02p | E4as_v4 | D2as_v4 | $1,584 |
+| op-rg-prod | az-trinity601p | E4as_v4 | E2as_v4 | $1,308 |
+| op-rg-prod | az-martech01p | E4as_v4 | D4as_v4 | $552 |
+
+prod 建議等 az-ddpbitb601t（dev）穩定 1–2 週後再執行，優先順序：az-ddpbitb601p → az-airflow02p → az-trinity601p → az-martech01p。
+
 ## 搭配使用的 skills
 
 - **`microsoft-docs`**：驗證 Azure Cost Management API、Pricing、ACA、APIM 等官方文件

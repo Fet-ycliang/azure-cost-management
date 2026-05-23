@@ -20,6 +20,10 @@
         "start"
       ]
     },
+	"microsoft-learn": {
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp"
+    },
 	"outlook-email": {
       "type": "http",
       "url": "https://apim-fet-outlook-email.azure-api.net/outlook-email/mcp"
