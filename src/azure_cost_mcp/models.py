@@ -465,6 +465,31 @@ class TagRemediationParams(ResponseOptions, RequiredTagsOptions):
     )
 
 
+class LearnSearchParams(ResponseOptions):
+    """Microsoft Learn 文件搜尋工具輸入。"""
+
+    query: str = Field(
+        description="搜尋關鍵字，例如 'Azure Cost Management reservation' 或 'Databricks 費用優化'。",
+    )
+    top: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="回傳結果筆數上限（1–20），預設 5。",
+    )
+    locale: str = Field(
+        default="zh-tw",
+        description="語系代碼，預設 zh-tw（繁體中文）；無繁中內容時 Learn API 會自動退回英文。",
+    )
+    category_filter: str | None = Field(
+        default=None,
+        description=(
+            "限定 Learn 資源類型：'Documentation'（技術文件）或 'Learn'（互動課程模組）；"
+            "省略則同時回傳所有類型。"
+        ),
+    )
+
+
 class StorageExportsParams(ResponseOptions):
     """Storage 匯出查詢輸入。"""
 
