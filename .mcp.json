@@ -19,6 +19,10 @@
         "server",
         "start"
       ]
+    },
+	"outlook-email": {
+      "type": "http",
+      "url": "https://apim-fet-outlook-email.azure-api.net/outlook-email/mcp"
     }
   }
 }

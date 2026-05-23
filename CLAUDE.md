@@ -231,8 +231,73 @@ python scripts/refresh_current_tags.py --rg <rg-name>
   result = subprocess.run(cmd, shell=True, ...)
   ```
 
+## 語言規範速查
+
+| 情境 | 語言 |
+|---|---|
+| README、文件、docstring、code comment、commit message、error message | **繁體中文** |
+| 程式識別子（變數、函式、class）、技術術語（FastMCP, Docker, OAuth） | **英文** |
+| 國際開源貢獻或需跨國協作 | 英文 |
+
+- **Commit message 格式**：`type: 繁體中文描述`（type 英文：`feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`）
+- **docstring 樣式**：Google Style，欄位標籤繁中（`參數:`, `回傳:`, `引發:`）
+
+## Git 流程
+
+- **分支策略**：新功能 / bugfix 先進 `develop`；`main` 只接受來自 `develop` 的合併。
+- **合入 main**：一律 `git merge --no-ff <branch>`，保留分支歷史，不允許 fast-forward。
+
+## Azure DevOps 踩坑規則
+
+### Task 狀態流程（強制順序）
+
+```
+New → To Do → In Progress → Done
+```
+
+禁止跳過中間狀態；禁止建立後直接設 Done。
+
+### 建立 Task 的正確三步驟
+
+❌ **禁止用 `wit_add_child_work_items`**（Area Path 權限問題）
+
+✅ 改用：
+1. `wit_create_work_item`（帶 `System.AreaPath`，初始狀態預設 To Do）
+2. `wit_work_items_link`（批次建立 parent 連結）
+3. `wit_update_work_item` → `In Progress` → `Done`，只填 `CompletedWork`
+
+### 其他 ADO 陷阱
+
+- **禁止設 `RemainingWork=0`**（ADO 報 `InvalidNotEmpty`）
+- **PBI `Effort` 欄位**在 Done 狀態為唯讀，須在 New / Approved 時設定
+- **描述格式**：`System.Description` 必須用 HTML（`<h3>`, `<p>`, `<ul><li>`），不能用 Markdown（`## `、backtick、`- [x]`，ADO 不渲染）
+- **Work item URL 格式**：`https://dev.azure.com/FET-IDTT/5c1d1372-d7f9-44cb-a3df-42a44a0cc770/_workitems/edit/{id}`
+
+## Copilot Studio Agent 路由
+
+| 需求類型 | 使用子 Agent |
+|---|---|
+| 設計建議（how should I build…） | **Advisor** |
+| 建立 / 修改 agent 功能 | **Author** |
+| 審查 / 稽核 agent YAML | **Advisor** |
+| 問題排查（topic 不觸發、hallucination、驗證錯誤） | **Advisor** |
+| 測試 / 評估 | **Test** |
+| clone / push / pull / publish | **Manage** |
+
+- **Author 前提**：workspace 必須有 `agent.mcs.yml`；沒有則先用 **Manage** clone，再交給 Author。
+- **Skill 限制**：skills 只用於簡單資訊查詢；建立、修改、排查、測試一律走子 Agent，不直接呼叫 skill 代勞。
+
+## copilot-instructions 維護原則
+
+- **`.github/copilot-instructions.md`** 存在於 **repo root**，供 GitHub Copilot CLI 讀取；不是 worktree 副本。
+- 內容維持**輕量版**：開發指令速查 + 架構表 + 關鍵慣例要點，完整規則指向 `CLAUDE.md`。
+- 更新 `CLAUDE.md` 的規則後，**不需要同步回 `copilot-instructions.md`**（指標頁不含規則本身）。
+- worktree 的 `.github/copilot-instructions.md` 副本應保持與 root 同步（同樣輕量版）。
+
 ## 導航提示
 
+- **Copilot 工作規則（本檔）**：`CLAUDE.md`
+- **Copilot 快速入口（輕量版）**：`.github\copilot-instructions.md`
 - 專案規範：`.claude\project-guidelines\SKILL.md`
 - Genie 欄位對照：`.cache\views-mapping\refs\db-schema-mapping.md`
 - 月報速查表：`.cache\views-mapping\monthly\refcard.md`
