@@ -231,6 +231,29 @@ python scripts/refresh_current_tags.py --rg <rg-name>
   result = subprocess.run(cmd, shell=True, ...)
   ```
 
+## Azure CLI / VM 維運踩坑
+
+### az login --service-principal 取代 user session
+- **`az login --service-principal`** 執行後，目前的 user credential 會被 SP session **取代**，不是並存。
+- SP 操作完成後，原本的 user az session **已消失**，`az account set` 會報 "no active accounts"。
+- **每次使用 SP 登入做完操作後，必須重新執行 `az login` 恢復 user session**。
+- 建議作業模式：SP 登入 → 執行操作 → `az logout` → `az login` 恢復。
+- abd-adls SP（Contributor on TO-ABD360）的 secret 在 `.env` 的 `token_abd-adls` 欄位；使用時用 `Get-Content .env | Select-String "token_abd-adls"` 取得。
+
+### VM Resize 作業流程
+- **先 dev，觀察 1–2 週，再 prod**：不要因為 Advisor 建議就直接操作 prod。
+- VM resize 會觸發重開機，應在非尖峰時段執行。
+- 執行命令：`az vm resize -g <resource-group> -n <vm-name> --size <target-sku>`
+- 執行後 `provisioningState` 需為 `Succeeded` 才算完成；失敗時回 `az vm show` 確認實際 SKU。
+
+## Copilot Memory 使用注意
+
+- `/memory` 是 Copilot CLI 的**互動 slash command**，**不是** shell 指令，agent 無法代替使用者執行。
+- 需要在 CLI prompt 直接輸入 `/memory` 才能查看狀態或啟用/停用。
+- Memory 分兩層：**repo-level facts**（任何方案可用）與 **user-level preferences**（需 Pro/Pro+）。
+- 28 天未更新自動到期（TTL）；enterprise/org 預設關閉；個人 Pro 預設開啟。
+- Copilot Memory 啟用後，CLI 會在工作過程中自動累積此 repo 的 context，下次 session 不需重新說明。
+
 ## 語言規範速查
 
 | 情境 | 語言 |
