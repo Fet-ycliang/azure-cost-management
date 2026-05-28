@@ -111,6 +111,10 @@
 
 ### 路徑慣例
 - **`.cache/`** 是 gitignored 的暫存目錄；可執行腳本必須放在 **`scripts/`**（repo 根目錄），不要放進 `.cache/`。
+- **`.cache\knowledge-base\README.md`** 是 `.cache` 知識庫總入口；tag 管理、FinOps 說明、每月成本計算比較三個主題都先從這裡進。
+- **`.cache\views-mapping` 的 canonical markdown 路徑在 `monthly/` 與 `refs/` 子目錄**：`monthly/refcard.md`、`monthly/reports/YYYY-MM.md`、`refs/db-schema-mapping.md`。根目錄的 `monthly-refcard.md`、`cost-report-YYYY-MM.md`、`04-db-schema-mapping.md` 若出現，多半是 legacy 產物或空檔副本。
+- **清理 `.cache\views-mapping` 舊 markdown 時，必須連 generator script 與 `.obsidian/workspace.json` 一起更新**；只刪檔不改輸出路徑，舊檔下次還會被重新產生或被工作區重新指回去。
+- **Markdown 相對連結一律使用 forward slash (`../refs/db-schema-mapping.md`)**，不要用 Windows 反斜線；Windows 路徑規則只適用於 shell / PowerShell 指令，不適用於 markdown link target。
 
 ### server.py import 順序
 - **在 `server.py` 的 import list 新增 model class 之前，必須先在 `models.py` 定義好**。`server.py` 的 module-level import 若引用不存在的 class，整個 server 模組會無法 import，導致所有 MCP tool 都掛掉。
@@ -322,6 +326,8 @@ New → To Do → In Progress → Done
 - **Copilot 工作規則（本檔）**：`CLAUDE.md`
 - **Copilot 快速入口（輕量版）**：`.github\copilot-instructions.md`
 - 專案規範：`.claude\project-guidelines\SKILL.md`
+- `.cache` 知識庫總入口：`.cache\knowledge-base\README.md`
+- `.cache` 知識庫使用手冊：`.cache\knowledge-base\usage-guide.md`
 - Genie 欄位對照：`.cache\views-mapping\refs\db-schema-mapping.md`
 - 月報速查表：`.cache\views-mapping\monthly\refcard.md`
 - 月報查詢規則：`.cache\views-mapping\monthly\query-rules.md`
@@ -334,4 +340,3 @@ New → To Do → In Progress → Done
 - Tag 批次套用：`scripts\apply_rg_tags.py --rg <rg> [--dry-run]`（空字串 desired 自動跳過）
 - 小寫 tag 刪除：`scripts\remove_lowercase_tags.py --rg <rg> [--dry-run]`（需先刷新 current_tags 快照）
 - **current_tags 刷新：`scripts\refresh_current_tags.py [--rg <rg>]`**（全部或單一 RG，自動正規化格式）
-
