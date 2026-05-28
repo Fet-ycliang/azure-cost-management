@@ -9,7 +9,15 @@ disable-model-invocation: false
 
 # 專案費用對照工作流程
 
-詳細對照表見 `.cache/views-mapping/cost-report-YYYY-MM.md`。
+詳細對照表見 `.cache/views-mapping/monthly/reports/YYYY-MM.md`。
+
+> **Canonical 對照路徑：**
+> - 專案費用對照：`.cache/views-mapping/monthly/reports/YYYY-MM.md`
+> - Purpose 索引：`.cache/views-mapping/refs/purpose-tags.md`
+> - Resource Group 索引：`.cache/views-mapping/refs/resource-groups.md`
+> - 欄位對照：`.cache/views-mapping/refs/db-schema-mapping.md`
+>
+> 舊的 root-level `cost-report-YYYY-MM.md`、`04-db-schema-mapping.md` 可能是 legacy / 空檔副本；不要再把它們當 source-of-truth。
 
 ## Genie View Schema 說明
 
@@ -61,7 +69,7 @@ Databricks 走預繳 / Reservation，ActualCost 可能為 0，必須用 Amortize
 
 ### Step 2 — 找對應 view 過濾條件
 
-查詢 `.cache/views-mapping/01-purpose-tags.md` 或 `02-resource-groups.md`，確認：
+查詢 `.cache/views-mapping/refs/purpose-tags.md` 或 `refs/resource-groups.md`，確認：
 - 對應的 purpose 值（view 已預處理為小寫，直接比對）
 - 對應的 resource_group_name 清單
 

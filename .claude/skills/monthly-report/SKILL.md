@@ -9,7 +9,16 @@ disable-model-invocation: false
 
 # 月報三份資料工作流程
 
-每月月初依序執行以下章節。詳細查詢規範見 `.cache/views-mapping/monthly-report-workflow.md`。
+每月月初依序執行以下章節。詳細查詢規範見 `.cache/views-mapping/monthly/workflow.md`。
+
+> **Canonical 月報知識路徑：**
+> - 工作流程：`.cache/views-mapping/monthly/workflow.md`
+> - 35 行速查：`.cache/views-mapping/monthly/refcard.md`
+> - 查詢規則：`.cache/views-mapping/monthly/query-rules.md`
+> - 歷史對照：`.cache/views-mapping/monthly/reports/YYYY-MM.md`
+> - 欄位對照：`.cache/views-mapping/refs/db-schema-mapping.md`
+>
+> `.cache/views-mapping/` 根目錄曾出現 `monthly-refcard.md`、`cost-report-YYYY-MM.md`、`04-db-schema-mapping.md` 這類 legacy 輸出；它們可能是空檔或過期副本，清理時要以 `monthly/` 與 `refs/` 下的 canonical 路徑為準，並同步更新產生腳本與 Obsidian workspace 參考。
 
 ## Chapter 01 — 帳單確認
 
@@ -24,10 +33,10 @@ disable-model-invocation: false
 | Gate | Genie Space |
 |------|------------|
 | amortized_by_servicename_azure | AmortizedCost |
-| actual_by_servicename_azure | ActualCost |
+| actual_vm_storage_azure | ActualCost |
 | amortized_databricks_azure | AmortizedCost |
 | amortized_by_servicename_m365 | AmortizedCost |
-| actual_by_servicename_m365 | ActualCost |
+| actual_vm_storage_m365 | ActualCost |
 | amortized_databricks_m365 | AmortizedCost |
 
 任何一道 FAIL → 停止，找差異根因後重驗。  
