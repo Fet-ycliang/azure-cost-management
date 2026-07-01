@@ -250,6 +250,67 @@ python scripts/refresh_current_tags.py --rg <rg-name>
 - 執行命令：`az vm resize -g <resource-group> -n <vm-name> --size <target-sku>`
 - 執行後 `provisioningState` 需為 `Succeeded` 才算完成；失敗時回 `az vm show` 確認實際 SKU。
 
+## Databricks Embedding Endpoint 踩坑規則
+
+### Endpoint URL 格式（非 AI Gateway）
+- **`DatabricksEmbeddingClient` 支援兩種 URL 格式**，但語意不同：
+  - AI Gateway 路徑：`https://<workspace>/ai-gateway/mlflow/v1/embeddings`（多模型路由）
+  - Serving Endpoint 直連：`https://<workspace>/serving-endpoints/<name>/invocations`（單一端點）
+- **External Model 類型的 serving endpoint 直接用 `/invocations` 路徑**，回應是 OpenAI-compatible 格式（`data[].embedding`），程式碼 parsing 相容，不需修改 `embedding.py`。
+
+### .env 設定對應 serving endpoint
+```env
+DATABRICKS_EMBEDDING_URL=https://<workspace>.azuredatabricks.net/serving-endpoints/<endpoint-name>/invocations
+DATABRICKS_EMBEDDING_MODEL=<endpoint-name>     # 填 endpoint 名稱，不是底層模型名
+DATABRICKS_EMBEDDING_DIM=1536                  # text-embedding-3-small = 1536；BGE-Large-EN = 1024
+```
+
+### Token 是 workspace-scoped
+- **`DATABRICKS_TOKEN` 只對發行它的 workspace 有效**；跨 workspace 呼叫直接回 403 `Invalid access token`。
+- 多 workspace 環境查 `~/.databrickscfg` 找正確 profile，例如：
+  - `[develop]` → `adb-6748704777045471.11`
+  - `[azure-rag-bst]` → `adb-2654999172504234.14`
+
+### Azure OpenAI VNet 限制 × Databricks External Model
+
+- **External Model 服務端流量走 Databricks 控制平面（NAT gateway），不走 customer VNet。**
+  - 因此 Azure OpenAI 上設定的 VNet rules（customer subnet）對此流量**無效**。
+  - 必須在 Azure OpenAI 的 **IP firewall rules**（`ipRules`）加入 Databricks 控制平面的 egress IP。
+
+- **Southeast Asia Databricks egress CIDR（截至 2026-07）**：
+  ```
+  13.67.21.136/29
+  20.43.41.152/29
+  20.43.65.144/29
+  20.43.130.96/28
+  20.195.138.176/29
+  20.195.154.152/29
+  52.187.0.85
+  52.187.3.203
+  52.187.145.107
+  ```
+  > 注意：單一 IP（`/32`）Azure OpenAI **不接受**，直接填裸 IP（不加 `/32`）。
+
+- **加入 IP rules 的 CLI 指令**：
+  ```powershell
+  az cognitiveservices account network-rule add \
+      --name "<aoai-resource>" \
+      --resource-group "<rg>" \
+      --subscription "<subscription>" \
+      --ip-address <cidr-or-ip>
+  ```
+
+- **取得最新 Databricks IP 清單（ServiceTags JSON）**：
+  ```powershell
+  # 1. 查最新檔名
+  $page = Invoke-WebRequest "https://www.microsoft.com/en-us/download/details.aspx?id=56519" -UseBasicParsing
+  $file = ($page.Content | Select-String "ServiceTags_Public_\d+\.json").Matches.Value
+  # 2. 下載並過濾 Southeast Asia
+  Invoke-WebRequest "https://download.microsoft.com/download/7/1/D/71D86715-5596-4529-9B13-DA13A5DE5B63/$file" -OutFile "$env:TEMP\svc.json" -UseBasicParsing
+  $data = Get-Content "$env:TEMP\svc.json" -Raw | ConvertFrom-Json
+  ($data.values | Where-Object name -eq "AzureDatabricks").properties.addressPrefixes | Where-Object { $_ -match "^(13\.67|20\.43|20\.195|52\.187)" }
+  ```
+
 ## Copilot Memory 使用注意
 
 - `/memory` 是 Copilot CLI 的**互動 slash command**，**不是** shell 指令，agent 無法代替使用者執行。
