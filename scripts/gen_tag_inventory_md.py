@@ -136,9 +136,9 @@ def _missing_keys(tags: dict[str, Any], required_keys: list[str]) -> list[str]:
     return [k for k in required_keys if not str(tags.get(k, "")).strip()]
 
 
-GRAPH_TAG_KEYS = ("CostCenter", "Purpose", "owner", "EnvType")
+GRAPH_TAG_KEYS = ("cost_center", "Purpose", "owner", "EnvType")
 GRAPH_TAG_DIRS = {
-    "CostCenter": "cost-centers",
+    "cost_center": "cost-centers",
     "Purpose": "purposes",
     "owner": "owners",
     "EnvType": "env-types",
@@ -483,15 +483,15 @@ def _infer_charge_model(
 ) -> str:
     cost_centers = sorted(
         {
-            effective.get("CostCenter", "").strip()
+            effective.get("cost_center", "").strip()
             for effective in (_effective_tags(resource, desired_overrides) for resource in resources)
-            if effective.get("CostCenter", "").strip()
+            if effective.get("cost_center", "").strip()
         }
     )
     if len(cost_centers) > 1:
-        return "Cross CostCenter 拆帳"
+        return "Cross cost_center 拆帳"
     if len(cost_centers) == 1:
-        return f"單一 CostCenter 掛帳 ({cost_centers[0]})"
+        return f"單一 cost_center 掛帳 ({cost_centers[0]})"
     return "待確認"
 
 
@@ -614,13 +614,13 @@ def _write_tag_graph_notes(
         "",
         "- [[_index|Vault 首頁]]",
         "",
-        "> 從 CostCenter 進入，再展開到 Purpose / owner / EnvType / Resource Groups。",
+        "> 從 cost_center 進入，再展開到 Purpose / owner / EnvType / Resource Groups。",
         "",
-        "## CostCenter",
+        "## cost_center",
         "",
     ]
-    for value in sorted(graph["CostCenter"].keys()):
-        index_lines.append(f"- {_tag_note_link('CostCenter', value)}")
+    for value in sorted(graph["cost_center"].keys()):
+        index_lines.append(f"- {_tag_note_link('cost_center', value)}")
     index_lines.append("")
     (tag_graph_dir / "index.md").write_text("\n".join(index_lines), encoding="utf-8")
 

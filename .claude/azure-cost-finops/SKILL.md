@@ -23,7 +23,7 @@ description: >
 - 比較 Storage / VM / Network egress 成本
 - 設計部門費用、費用趨勢、節費方向等 MCP tools
 - 找出未打標記資源
-- 規劃 tag governance roadmap（不要假設目前已有維護功能）
+- 執行或維護既有的 tag audit、tag remediation 與 legacy tag migration 流程
 - 設計 Azure Cost Management REST API、Storage、Databricks MCP server 的整合方式
 
 ## 本專案目前已確認的優先順序
@@ -40,8 +40,8 @@ description: >
 1. 查詢部門費用
 2. 查詢節費方向與優化建議
 3. 查詢費用趨勢
-4. 找出未打標記的服務或資源
-5. Databricks 僅提供成本查詢 / SQL 分析整合，tag 治理另案規劃
+4. 找出未打標記的服務或資源，並以 operator-run scripts 產生修正計畫
+5. Databricks 僅提供成本查詢 / SQL 分析整合，不是 tag 治理 backend
 
 ## 資料流原則
 
@@ -58,7 +58,7 @@ description: >
 - **即時比較 / 快速切片** → 先看 Cost Management REST API
 - **歷史趨勢 / amortized cost / 大量分析** → 先看 exports / FOCUS + Storage
 - **Databricks 成本查詢 / UC SQL 分析** → 走 Databricks MCP server
-- **tag audit / tag remediation / 維護流程** → 目前不假設存在，需另案規劃
+- **tag audit / tag remediation** → 使用 `scripts/` 的 operator-run 流程；不是 Databricks MCP capability
 
 ## Cost Analysis views 使用前提
 
@@ -124,15 +124,14 @@ description: >
 - **`annual_budget` 應視為主要來源，`monthly_budget` 盡量由規則推導或驗證一致性**
 - **需要一張 mapping / registry 表**，把 `view_name`、budget、project metadata、code column、tenant、scope 關係收齊
 
-## 目前範圍限制
+## Tag 治理範圍與邊界
 
-目前專案**沒有**把 tag 治理當成已實作的維護功能，請遵守以下邊界：
+目前已有 tag inventory、gap analysis、desired JSON、apply 與 `CostCenter` migration scripts，但它們是由 operator 明確執行的維運流程，不是可任意由 Databricks 或對外 MCP tool 直接修改 Azure 的能力。
 
-1. **不要預設 Databricks MCP server 有 tag audit / tag remediation tool**
-2. **不要把 tag 維護能力算進目前 local validation 的必要範圍**
-3. **tag 相關需求先視為 roadmap / planning topic，不是既有維運能力**
-4. **若目前 Databricks 端是 `ActualCost` / `AmortizedCost` 這類 Genie Space，應解讀成 query backend，而不是治理 backend**
-5. **目前已驗證成功的範圍僅限 Azure 平台**；即使 Azure 平台已對齊，也**不能**推論 M365 平台已對齊，M365 必須獨立做同一套 REST vs Genie 驗證流程
+1. **不要預設 Databricks MCP server 有 tag audit / tag remediation tool**；`ActualCost` / `AmortizedCost` Genie Space 只作為 query backend。
+2. **tag 寫入必須先 dry-run、人工確認範圍與值，再以明確的 apply 操作執行**；不可把盤點結果直接當成可寫入資料。
+3. **目前已驗證成功的範圍僅限 Azure 平台**；即使 Azure 平台已對齊，也不能推論 M365 平台已對齊，M365 必須獨立驗證。
+4. **未經 review 的 owner、Purpose 或共用 RG 不能用全域規則猜測**；保留空白並要求人工確認。
 
 ## Multi-tenant auth 前提
 
@@ -273,17 +272,36 @@ with patch.object(client, "session_scope", _fake_scope):
 - Genie Space 的空間設計與 Conversation API 流程
 - Unity Catalog system tables 在 billing / audit / lineage 的使用方式
 
-## tag remediation 守則
+## Tag remediation 操作守則
 
-以下內容屬於**未來若要規劃 tag 治理能力**時的守則，不代表目前專案已經提供維護功能：
+### 標準與計畫
 
-- 預設模式：**先產生修正建議**
-- 進階模式：**明確指定直接 apply**
-- 必須定義：
-  - tag 欄位白名單
-  - 輸入驗證
-  - dry-run / apply 切換條件
-  - 稽核與錯誤回報
+1. Azure 層的標準成本中心 key 是 `cost_center`。遷移 `CostCenter` 時，必須先 Merge 相同值的 `cost_center`，確認成功後才能 Delete `CostCenter`；舊、新值不同或舊值空白時一律列為 conflict，不得自動覆寫。
+2. `Purpose`、`EnvType`、`owner` 的值必須以已 review 的 RG 或資源子群規則為準。不得從全域 `cost_center -> owner` 對照推導；NIC、Private Endpoint 和 Disk 需先確認母資源關係。
+3. `Purpose=cdp` 的標準 `cost_center` 為 `6251`。其餘 Purpose 與 owner 的 canonical values 以 `CLAUDE.md` 的已核准規則為準。
+4. desired JSON 的 `current_tags` 可重新盤點，`desired_tags` 是人工目標值；重新產生 Obsidian 文件時使用 `--skip-desired`，不可覆蓋已確認的目標值。
+
+### 安全執行流程
+
+1. 先以即時 Resource Graph / 資源 API 盤點，建立 dry-run 與 JSON report。
+2. 對每一批 scope 確認 resource ID、資源類型、目前 tags、目標 tags 與排除清單；資源名稱不能當唯一鍵。
+3. 只在使用者或 operator 明確指定 apply 後寫入；寫入採 Merge，避免覆蓋未指定 tag。
+4. `CostCenter` migration 使用 `scripts/migrate_cost_center_tags.py`，並保留報告供 retry。只重試 409、412、429 或 5xx 等暫時性錯誤；403 deny assignment 不是可透過重試或新增 RBAC 解決的錯誤。
+5. 寫入後以直接讀取驗證目標 tags。不要只以 HTTP PATCH 成功、Azure Portal 延遲畫面或舊快照判定完成。
+
+### Multi-tenant credential 與驗證
+
+- 自動化使用 Service Principal，不能依賴可能受 MFA 影響的本機 Azure CLI session。
+- Azure 與 M365 SP 都需可先取得管理平面 token；每個 subscription 先使用具有權限的 credential，Resource Graph 失敗時才依序 fallback 至另一組 credential。
+- TO-ABD360 曾出現 M365 Resource Graph generic 400，但 Azure SP 可正常讀取。此類錯誤是 credential / scope routing 問題，不應因此略過訂閱或把資料視為空。
+
+### Provider 特例與不可操作資源
+
+- `Microsoft.ApiManagement/service`（特別是 SkuV2）使用 type-specific `2024-05-01` GET/PATCH，保留完整 tag map、ETag / `If-Match`，並將 `202 Accepted` 視為非同步操作輪詢到讀回成功。
+- Private DNS VNet links 可能傳播延遲或暫時 409；等待後用 Network type-specific GET（`2024-06-01`）檢查頂層 `tags`。
+- SQL、Compute Disk / Snapshot 的 generic Tags API 讀取可能假陰性；分別用 SQL `2023-08-01`、Compute `2023-04-02` 的 type-specific GET 驗證。`Microsoft.App/managedEnvironments` 即使 generic PATCH 回 500，也必須直接讀取後再判定是否失敗。
+- Databricks managed RG 的 system deny assignment、已連結 environment 的 `Microsoft.PowerPlatform/enterprisePolicies`、停止中 VM 的 extension 皆不可為了補 tag 而強制繞過。記錄為 blocked exception；不可解除 Enterprise Policy 連結或啟動 VM。
+- Azure 系統建立資源（例如 Databricks NSG、Network Watcher、受管 RG）需依 `analyze_tag_gaps.py` 的排除規則處理，不能將其列入一般健康率或批次套用範圍。
 
 ## Genie Space 欄位注意事項
 

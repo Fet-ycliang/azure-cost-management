@@ -6,7 +6,7 @@
   .cache/tag-review/{date}/gaps/{sub_name}.md      每訂閱詳細差距
 
 檢查項目：
-  1. 缺漏必要 tag（CostCenter / EnvType / Purpose / owner）
+  1. 缺漏必要 tag（cost_center / EnvType / Purpose / owner）
   2. 已 review 的 RG 其 Purpose 與預設值不一致
 
 排除規則（系統資源，不計入健康率）：
@@ -36,6 +36,7 @@ SUBSCRIPTIONS = [
     {"id": "1d077479-3fc2-4f1f-82b4-0a5789393fd2", "name": "IDTT-AIVerse_Dev"},
     {"id": "d71cbe04-6c66-4b51-affc-1389f315486e", "name": "IDTT-Data_Governance_Enhancement"},
     {"id": "2b3d67c6-07ce-4d8b-b9ff-c729a17b291a", "name": "TO-ABD360"},
+    {"id": "8ba00d96-08ee-451f-a0c7-809fb4c1d29c", "name": "IDTT-Agent_Assistant"},
 ]
 
 EXCLUDE_TYPES = {
@@ -48,7 +49,7 @@ EXCLUDE_TYPES = {
     "microsoft.powerplatform/enterprisepolicies",
 }
 
-REQUIRED_KEYS = ["CostCenter", "EnvType", "Purpose", "owner"]
+REQUIRED_KEYS = ["cost_center", "EnvType", "Purpose", "owner"]
 
 # 系統資源排除規則（不計入健康率）
 SYSTEM_RG_PREFIXES = (
@@ -59,21 +60,41 @@ SYSTEM_RG_PREFIXES = (
     "databricks-rg-",               # Databricks 受管 RG
     "managed-rg-",                  # Purview 受管 RG
     "cloud-shell-storage-",         # Cloud Shell 自動建立
+    "azureapp-auto-alerts-",        # Azure Monitor 自動警示 RG（deny assignment）
+    "azurebackuprg_",               # Azure Backup 自動建立 RG
+    "synapseworkspace-managedrg-",  # Synapse 受管 RG
 )
-SYSTEM_RG_EXACT = {"networkwatcherrg"}
+SYSTEM_RG_EXACT = {"networkwatcherrg", "dashboards"}
 
 SYSTEM_TYPES = {
     "microsoft.compute/virtualmachines/extensions",
     "microsoft.eventgrid/systemtopics",
+    "microsoft.network/networkintentpolicies",      # Databricks 系統自建網路原則
+    "microsoft.operationsmanagement/solutions",     # SecurityCenter / OMS 自動部署方案
+}
+
+# 這些名稱前綴的資源由系統自動建立，不強制要求 tag
+SYSTEM_NAME_PREFIXES = (
+    "databricksnsg",    # Databricks workspace 自動建立的 NSG
+)
+
+# 這些類型不要求 Purpose（其餘 cost_center/EnvType/owner 仍檢查）
+SKIP_PURPOSE_TYPES = {
+    "microsoft.databricks/workspaces",
 }
 
 
 def _is_system_resource(r: dict) -> bool:
     rg = r.get("resourceGroup", "").lower()
     rtype = r.get("type", "").lower()
+    name = r.get("name", "").lower()
     if rtype in SYSTEM_TYPES:
         return True
+    if rg in SYSTEM_RG_EXACT:
+        return True
     if any(rg.startswith(p) for p in SYSTEM_RG_PREFIXES):
+        return True
+    if any(name.startswith(p) for p in SYSTEM_NAME_PREFIXES):
         return True
     return False
 
@@ -145,8 +166,10 @@ def analyze_resource(r: dict) -> dict:
     tags = r.get("tags") or {}
     issues: list[str] = []
 
-    # 1. 缺漏必要 tag
-    missing = [k for k in REQUIRED_KEYS if not str(tags.get(k, "")).strip()]
+    # 1. 缺漏必要 tag（部分類型不需 Purpose）
+    rtype = r.get("type", "").lower()
+    required = [k for k in REQUIRED_KEYS if k != "Purpose" or rtype not in SKIP_PURPOSE_TYPES]
+    missing = [k for k in required if not str(tags.get(k, "")).strip()]
     if missing:
         issues.append(f"缺: {', '.join(missing)}")
 
@@ -263,7 +286,7 @@ def write_global_gap_index(path: Path, *, snapshot_date: str, sub_reports: list[
         "",
         "| 類型 | 說明 |",
         "| --- | --- |",
-        "| 缺: KEY | 缺少必要 tag（CostCenter / EnvType / Purpose / owner）|",
+        "| 缺: KEY | 缺少必要 tag（cost_center / EnvType / Purpose / owner）|",
         "| Purpose 不符 | 已 review 的 RG 預設 Purpose 與實際值不一致 |",
         "",
     ]

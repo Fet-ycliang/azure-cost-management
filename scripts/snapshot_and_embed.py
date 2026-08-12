@@ -24,6 +24,7 @@ SUBSCRIPTIONS = [
     {"id": "23adb6f9-dc6a-40ed-aad6-c549b9bbe4c0", "name": "IDTT-AIVerse_Prod"},
     {"id": "ae0cdff2-430d-4d9c-8b1f-56f7f7163261", "name": "IDTT-Customer Data Platform"},
     {"id": "1d077479-3fc2-4f1f-82b4-0a5789393fd2", "name": "IDTT-AIVerse_Dev"},
+    {"id": "8ba00d96-08ee-451f-a0c7-809fb4c1d29c", "name": "IDTT-Agent Assistant"},
 ]
 
 EXCLUDE_TYPES = {

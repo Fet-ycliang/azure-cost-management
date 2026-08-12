@@ -14,7 +14,7 @@ def _resource(*, sub_name: str = "TO-ABD360", rg: str = "fet-ids-prod-rg", purpo
         "type": "Microsoft.Compute/virtualMachines",
         "name": "vm-1",
         "tags": {
-            "CostCenter": "6251",
+            "cost_center": "6251",
             "EnvType": "Production",
             "Purpose": purpose,
             "owner": "John Zeng (598493)",
