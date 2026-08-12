@@ -111,6 +111,40 @@ def test_request_returns_none_for_no_content(monkeypatch: pytest.MonkeyPatch) ->
     assert credential.closed is True
 
 
+def test_delete_resource_tags_uses_delete_operation(monkeypatch: pytest.MonkeyPatch) -> None:
+    credential = DummyCredential()
+    response = httpx.Response(
+        200,
+        json={"properties": {"tags": {"cost_center": "3901"}}},
+        request=httpx.Request("PATCH", "https://management.azure.com/test"),
+    )
+    instances: list[DummyAsyncClient] = []
+
+    def fake_async_client(**kwargs) -> DummyAsyncClient:
+        client = DummyAsyncClient(response, **kwargs)
+        instances.append(client)
+        return client
+
+    monkeypatch.setattr("azure_cost_mcp.azure_management.create_azure_credential", lambda _: credential)
+    monkeypatch.setattr("azure_cost_mcp.azure_management.httpx.AsyncClient", fake_async_client)
+
+    client = AzureManagementApiClient(make_settings())
+    result = asyncio.run(client.delete_resource_tags("/resource-id", tag_keys=["CostCenter"]))
+
+    assert result == {"properties": {"tags": {"cost_center": "3901"}}}
+    assert instances[0].calls == [
+        {
+            "method": "PATCH",
+            "url": "/resource-id/providers/Microsoft.Resources/tags/default",
+            "params": {"api-version": "2021-04-01"},
+            "json": {
+                "operation": "Delete",
+                "properties": {"tags": {"CostCenter": ""}},
+            },
+        }
+    ]
+
+
 def test_request_raises_formatted_error(monkeypatch: pytest.MonkeyPatch) -> None:
     credential = DummyCredential()
     response = httpx.Response(

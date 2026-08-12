@@ -35,6 +35,18 @@ def test_settings_reject_blank_department_tag_key() -> None:
         Settings(AZURE_COST_DEPARTMENT_TAG_KEY="  ")
 
 
+def test_settings_accept_azure_sp_aliases() -> None:
+    settings = Settings(
+        AZURE_SP_TENANT_ID="tenant-id",
+        AZURE_SP_CLIENT_ID="client-id",
+        AZURE_SP_CLIENT_SECRET="client-secret",
+    )
+
+    assert settings.azure_tenant_id == "tenant-id"
+    assert settings.azure_client_id == "client-id"
+    assert settings.azure_client_secret == "client-secret"
+
+
 def test_get_settings_is_cached(monkeypatch: pytest.MonkeyPatch) -> None:
     get_settings.cache_clear()
     monkeypatch.setenv("AZURE_COST_DEPARTMENT_TAG_KEY", "Finance")

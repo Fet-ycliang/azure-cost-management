@@ -32,6 +32,7 @@ SUBSCRIPTIONS = [
     {"id": "23adb6f9-dc6a-40ed-aad6-c549b9bbe4c0", "name": "IDTT-AIVerse_Prod"},
     {"id": "ae0cdff2-430d-4d9c-8b1f-56f7f7163261", "name": "IDTT-Customer_Data_Platform"},
     {"id": "1d077479-3fc2-4f1f-82b4-0a5789393fd2", "name": "IDTT-AIVerse_Dev"},
+    {"id": "8ba00d96-08ee-451f-a0c7-809fb4c1d29c", "name": "IDTT-Agent_Assistant"},
 ]
 
 EXCLUDE_TYPES = {
@@ -82,7 +83,7 @@ def _collect_tag_keys(resources: list[dict]) -> list[str]:
     for r in resources:
         keys.update((r.get("tags") or {}).keys())
     # 固定優先順序，其餘 alphabetical
-    priority = ["CostCenter", "EnvType", "Purpose", "workload", "owner"]
+    priority = ["cost_center", "EnvType", "Purpose", "workload", "owner"]
     ordered = [k for k in priority if k in keys]
     rest = sorted(k for k in keys if k not in priority)
     return ordered + rest

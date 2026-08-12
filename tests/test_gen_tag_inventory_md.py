@@ -318,7 +318,7 @@ def _write_view_md(
 
 
 def test_write_rg_md_splits_sections_and_marks_pending_cost(tmp_path: Path) -> None:
-    required = ["CostCenter", "EnvType", "Purpose", "owner"]
+    required = ["cost_center", "EnvType", "Purpose", "owner"]
     resources = [
         {
             "id": "/subscriptions/sub-a/resourceGroups/rg-1/providers/Microsoft.Compute/virtualMachines/vm-1",
@@ -328,7 +328,7 @@ def test_write_rg_md_splits_sections_and_marks_pending_cost(tmp_path: Path) -> N
             "subscriptionId": "sub-a",
             "location": "eastus",
             "tags": {
-                "CostCenter": "3901",
+                "cost_center": "3901",
                 "EnvType": "Production",
                 "Purpose": "fet-ids",
                 "owner": "John Zeng (598493)",
@@ -342,7 +342,7 @@ def test_write_rg_md_splits_sections_and_marks_pending_cost(tmp_path: Path) -> N
             "subscriptionId": "sub-a",
             "location": "eastus",
             "tags": {
-                "CostCenter": "3901",
+                "cost_center": "3901",
                 "EnvType": "Production",
                 "Purpose": "fet-ids",
             },
@@ -358,7 +358,7 @@ def test_write_rg_md_splits_sections_and_marks_pending_cost(tmp_path: Path) -> N
         resources=resources,
         required_keys=required,
         related_tag_links={
-            "CostCenter": ["[[tag-graph/cost-centers/3901|3901]]"],
+            "cost_center": ["[[tag-graph/cost-centers/3901|3901]]"],
             "Purpose": ["[[tag-graph/purposes/fet-ids|fet-ids]]"],
         },
         cost_entries=[],
@@ -386,7 +386,7 @@ def test_main_generates_cost_mapping_graph_notes_and_case_insensitive_rg_groups(
             "subscriptionId": "sub-a",
             "location": "eastus",
             "tags": {
-                "CostCenter": "3901",
+                "cost_center": "3901",
                 "EnvType": "Production",
                 "Purpose": "fet-ids",
                 "owner": "John Zeng (598493)",
@@ -400,7 +400,7 @@ def test_main_generates_cost_mapping_graph_notes_and_case_insensitive_rg_groups(
             "subscriptionId": "sub-a",
             "location": "eastus",
             "tags": {
-                "CostCenter": "3901",
+                "cost_center": "3901",
                 "EnvType": "Production",
                 "Purpose": "fet-ids",
             },
@@ -413,7 +413,7 @@ def test_main_generates_cost_mapping_graph_notes_and_case_insensitive_rg_groups(
             "subscriptionId": "sub-a",
             "location": "eastus2",
             "tags": {
-                "CostCenter": "3101",
+                "cost_center": "3101",
                 "EnvType": "Production",
                 "Purpose": "31_ai_lab",
                 "owner": "Ralph Liang (527714)",
@@ -427,7 +427,7 @@ def test_main_generates_cost_mapping_graph_notes_and_case_insensitive_rg_groups(
             "subscriptionId": "sub-a",
             "location": "eastus2",
             "tags": {
-                "CostCenter": "6251",
+                "cost_center": "6251",
                 "EnvType": "Production",
                 "Purpose": "fet-ids",
                 "owner": "John Zeng (598493)",
@@ -475,7 +475,7 @@ def test_main_generates_cost_mapping_graph_notes_and_case_insensitive_rg_groups(
     _sys.argv = [
         "gen_tag_inventory_md.py",
         "--cache-dir", str(tmp_path),
-        "--required-tags", "CostCenter,EnvType,Purpose,owner",
+        "--required-tags", "cost_center,EnvType,Purpose,owner",
         "--snapshot-date", "2026-05-06",
     ]
     try:
@@ -493,9 +493,9 @@ def test_main_generates_cost_mapping_graph_notes_and_case_insensitive_rg_groups(
     assert "Subscription `Subscription Alpha` (`sub-a`)" in index_content
     assert "## 已對應" in index_content
     assert "Project Alpha" in index_content
-    assert "單一 CostCenter 掛帳 (3901)" in index_content
+    assert "單一 cost_center 掛帳 (3901)" in index_content
     assert "## 需檢查或確認" in index_content
-    assert "Cross CostCenter 拆帳" in index_content
+    assert "Cross cost_center 拆帳" in index_content
     assert "total_resource_groups: 2" in index_content
     assert "tag-graph/index" in index_content
 
@@ -505,15 +505,15 @@ def test_main_generates_cost_mapping_graph_notes_and_case_insensitive_rg_groups(
     assert "cost_status: 已對應" in rg_content
     assert "tenant_id: tenant-1" in rg_content
     assert "subscription_name: Subscription Alpha" in rg_content
-    assert "charge_model: 單一 CostCenter 掛帳 (3901)" in rg_content
+    assert "charge_model: 單一 cost_center 掛帳 (3901)" in rg_content
     assert "## 帳務歸屬" in rg_content
     assert "Project Alpha" in rg_content
     assert "## 一致" in rg_content
     assert "## 需檢查或確認" in rg_content
 
     pending_rg_content = (obsidian_dir / "sub-a" / "rg-2.md").read_text(encoding="utf-8")
-    assert "charge_model: Cross CostCenter 拆帳" in pending_rg_content
-    assert "- **charge_model**: Cross CostCenter 拆帳" in pending_rg_content
+    assert "charge_model: Cross cost_center 拆帳" in pending_rg_content
+    assert "- **charge_model**: Cross cost_center 拆帳" in pending_rg_content
 
     tag_graph_index = (obsidian_dir / "tag-graph" / "index.md").read_text(encoding="utf-8")
     assert "[[_index|Vault 首頁]]" in tag_graph_index

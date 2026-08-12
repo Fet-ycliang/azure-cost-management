@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 
@@ -71,9 +71,42 @@ class AzureManagementApiClient:
         api_version: str = "2021-04-01",
     ) -> dict[str, Any] | None:
         """以 Merge 語意更新資源 tags（不刪除未指定的現有 tag）。"""
+        return await self._update_resource_tags(
+            resource_id,
+            operation="Merge",
+            tags=tags,
+            api_version=api_version,
+        )
+
+    async def delete_resource_tags(
+        self,
+        resource_id: str,
+        *,
+        tag_keys: list[str],
+        api_version: str = "2021-04-01",
+    ) -> dict[str, Any] | None:
+        """刪除指定的資源 tag keys。"""
+        if not tag_keys:
+            raise ValueError("tag_keys 至少需要一個 tag key。")
+        return await self._update_resource_tags(
+            resource_id,
+            operation="Delete",
+            tags={key: "" for key in tag_keys},
+            api_version=api_version,
+        )
+
+    async def _update_resource_tags(
+        self,
+        resource_id: str,
+        *,
+        operation: Literal["Merge", "Delete"],
+        tags: dict[str, str],
+        api_version: str,
+    ) -> dict[str, Any] | None:
+        """依指定操作更新資源 tags。"""
         url = f"{resource_id}/providers/Microsoft.Resources/tags/default"
         body = {
-            "operation": "Merge",
+            "operation": operation,
             "properties": {"tags": tags},
         }
         return await self._request(

@@ -630,9 +630,9 @@ uv run --group test pytest --cov-report=term-missing
   - RG 頁結構：
     - 頁首固定有 vault 回鏈
     - 先顯示 `Tenant / Subscription / RG` 所屬脈絡
-    - 帳務歸屬（`單一 CostCenter 掛帳` / `Cross CostCenter 拆帳` / `待確認`）
+    - 帳務歸屬（`單一 cost_center 掛帳` / `Cross cost_center 拆帳` / `待確認`）
     - 成本摘要（已對應 project 成本；沒有 mapping 時顯示「整理中」）
-    - Tag 關聯（連到 CostCenter / Purpose / owner / EnvType graph notes）
+    - Tag 關聯（連到 cost_center / Purpose / owner / EnvType graph notes）
     - 兩個資源表格：`一致`、`需檢查或確認`
 - **相依 PBI**：PBI 1.2
 - **驗收條件**：
@@ -653,11 +653,11 @@ uv run --group test pytest --cov-report=term-missing
     - `需檢查或確認`：尚未整理完成的 RG
     - `tag-gap-summary.md`、`tag-graph/index.md` 的功能入口
   - `已對應 / 需檢查或確認` 兩區都會標示 `charge_model`，用來區分：
-    - `單一 CostCenter 掛帳`
-    - `Cross CostCenter 拆帳`
+    - `單一 cost_center 掛帳`
+    - `Cross cost_center 拆帳`
     - `待確認`
   - `tag-gap-summary.md`：缺漏最多的資源 Top 20，並可直接連回對應 RG 頁
-  - `tag-graph/index.md`：從 CostCenter 展開到 Purpose / owner / EnvType / Resource Groups 的 graph 入口
+  - `tag-graph/index.md`：從 cost_center 展開到 Purpose / owner / EnvType / Resource Groups 的 graph 入口
 - **相依 PBI**：PBI 2.1
 - **驗收條件**：gstack 截圖 `_index.md` 確認排序與連結正確
 
@@ -839,7 +839,7 @@ uv run --group test pytest --cov-report=term-missing
   ├── _index.md                               ← Vault 唯一主入口（Tenant → Subscription → RG → 成本/治理）
   ├── {subscription}/{rg}.md                 ← 每個 RG 一份 md（tenant/subscription、charge model、成本摘要、tag graph、一致/需檢查）
   ├── tag-gap-summary.md                     ← 缺漏資源 Top 20
-  └── tag-graph/index.md                     ← CostCenter graph 入口
+  └── tag-graph/index.md                     ← cost_center graph 入口
         ↓ 產出範本
 [.cache/tag-inventory/desired/{rg}.json]      ← 期望狀態（使用者填寫）
 

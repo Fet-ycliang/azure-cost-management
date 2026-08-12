@@ -84,18 +84,19 @@
 ## Tag 標準規範
 
 - **owner tag 格式**：`姓名 (行動電話簡碼)`，例如 `Ralph Liang (527714)`。括號內的 6 位數字是員工的**行動電話簡碼**（公司內部短碼），不是員工編號，也不是其他 ID 系統。
+- **已核准 owner identity mapping**：短碼 `527308` 的標準值為 `Morris Chen (527308)`；既有 `Chen, Morris 陳建宏 (527308)` 應在明確核准的範圍內正規化為此值。
 - **Environment 標準值**：`dev` / `bst` / `prod`（`bst` = BST staging，對應舊 `EnvType` 的 `Staging`）
 - 舊 `EnvType` 值對照：`Develop`→`dev`、`Staging`→`bst`、`Production`→`prod`
 - Tag key 全小寫 snake_case；Value 小寫連字號（如 `ai-verse`）
 
 ### Tag 轉換策略（重要架構決定）
 
-- **舊 tag key 不在 Azure 層改名**，保留 `CostCenter`、`EnvType`、`Purpose` 原樣。
-- Key / Value 正規化在**資料層（Genie / Databricks）**做，不在 Azure 做：
-  - `CostCenter` → `cost_center`（值不變）
+- **`cost_center` 是 Azure 層的標準 key**。既有 `CostCenter` 必須先以相同值新增 `cost_center`，確認 Merge 成功後才刪除 `CostCenter`；兩者值不同或舊值空白時不得自動覆寫。
+- Key / Value 正規化在**資料層（Genie / Databricks）**做：
+  - `CostCenter` → `cost_center`（legacy migration，值不變）
   - `EnvType` → `environment`（值正規化：`Production`→`prod`、`Staging`→`bst`、`Develop`→`dev`）
   - `Purpose` → `application`（值全轉小寫）
-- **fill_rg_tags.py / azure_cost_tag_apply 只補真正缺漏的 key**（`workload`、`owner`），不重複寫舊 key 的新命名版本。
+- **fill_rg_tags.py / azure_cost_tag_apply 只使用標準 key**，不寫入 legacy `CostCenter`。
 
 ## 開發踩坑規則（Epic 2–4 整合後更新）
 
@@ -149,7 +150,7 @@
 ### desired JSON 保護
 - **`gen_tag_inventory_md.py` 重跑會覆蓋 desired JSON**：已補上 `--skip-desired` 旗標，更新 Obsidian 時必須加此旗標以保留已填好的值。
   ```bash
-  python scripts/gen_tag_inventory_md.py --required-tags "CostCenter,Purpose" --skip-desired
+  python scripts/gen_tag_inventory_md.py --required-tags "cost_center,Purpose" --skip-desired
   ```
 - **desired JSON 維護原則**：current_tags 可隨時重抓覆蓋（反映 Azure 現況）；desired_tags 是人工設定的目標值，**永遠不要讓腳本自動覆蓋**。
 
@@ -190,18 +191,45 @@
 
 ### Databricks auto-created NSG
 - `databricksnsg*` 是 Databricks workspace 自動建立的 NSG，Purpose 通常繼承自 workspace 的 tag。
-- **不要強設 EnvType**：這類資源沒有明確的環境歸屬，只需補 `CostCenter` 和 `owner`，EnvType 留空（`""`）跳過。
+- **不要強設 EnvType**：這類資源沒有明確的環境歸屬，只需補 `cost_center` 和 `owner`，EnvType 留空（`""`）跳過。
 
-### Purpose 值與 CostCenter 對應規則
-- `CostCenter=3101` → `Purpose=31_ai_lab`（非 `ai_lab`，非 `OperationAI`）
-- `CostCenter=3901` → `Purpose=ai_verse`（非 `ai_lab`，非 `ids-bot`）
+### Purpose 值與 cost_center 對應規則
+- `cost_center=3101` → `Purpose=31_ai_lab`（非 `ai_lab`，非 `OperationAI`）
+- `cost_center=3901` → `Purpose=ai_verse`（非 `ai_lab`，非 `ids-bot`）
+- `Purpose=cdp` → `cost_center=6251`；既有 `3101`、`3201` 或缺漏值均須正規化為 `6251`。
 - 舊值對照：`OperationAI` → `31_ai_lab`；`ids-bot` → `ai_verse`；`ai_lab`（3101）→ `31_ai_lab`
 
 ### Purpose 預設值規則
-- `Purpose` 預設值以 **resource group** 為單位維護，不以 `CostCenter` 做全域推導。
+- `Purpose` 預設值以 **resource group** 為單位維護，不以 `cost_center` 做全域推導。
 - 大多數 RG 的 `Purpose` 一旦定案通常不變；只有少數**共用型 RG** 會允許多個合法值。
 - 只有**已 review** 的 RG 才加入 `scripts/analyze_tag_gaps.py` 的 `REVIEWED_RG_PURPOSE_MAP` 做 mismatch 檢查；未 review 的 RG 先不要報 `Purpose 不符`，避免誤判。
-- 已確認：`TO-ABD360 / fet-ids-prod-rg` → `CostCenter=6251`、`Purpose=fet-ids`
+- 已確認：`TO-ABD360 / fet-ids-prod-rg` → `cost_center=6251`、`Purpose=fet-ids`
+
+### IDTT-AIVerse_Dev 共用訂閱規則
+- `IDTT-AIVerse_Dev` 供多人共用開發；`owner` 與 `cost_center` **不設訂閱層級預設值**。
+- 每個 Resource Group 需各自 review 與維護規則；混合型 RG 必須再依資源子群或直接既有 tag 判定，不得將單一 profile 套用至全 RG。
+- 缺少直接證據的值維持空白，待人工確認後才納入 dry-run；禁止從全域 `cost_center → owner` 對照表推定。
+- `aibde-common-rg` 的 `Microsoft.Network/privateDnsZones/virtualNetworkLinks` 屬於共用 DNS 基礎設施，固定使用 `owner=Ralph Liang (527714)`、`cost_center=3101`，不跟隨目標 VNet 的 tag。
+- 同 RG 的 `Microsoft.Network/privateDnsZones` Zone 本體固定使用 `owner=Ralph Liang (527714)`、`cost_center=3101`。
+- `apim-app-bst-rg` 的 `cae-fet-aiverse-01-dev` Container Apps environment、其 Private Endpoint 與 NIC 為同一 3901 子群，固定使用 `owner=John Zeng (598493)`；三者必須一致。
+- 同 RG 的 `cae-fet-digital-01-dev` Container Apps environment、其 Private Endpoint 與 NIC 為同一 3201 子群，固定使用 `owner=Johnny Chen (515514)`；三者必須一致。
+- `aiverse-01-sql-bst/master` 繼承母 SQL Server，固定使用 `owner=John Zeng (598493)`、`cost_center=3901`。
+- 同 RG 的 `Workload=ai-gateway`、`ManagedBy=apim_deploy` 之 3201 子群固定使用 `owner=Johnny Chen (515514)`；`Owner=TBD` 視為無效值，應正規化。
+
+### IDTT Info cost center 規則
+- `IDTT-AIVerse_Prod / fet-idtt-info-rg` 的所有非系統資源固定使用 `cost_center=3901`，包含跨訂閱目標的 Private DNS VNet link。
+- 此規則只決定 `cost_center`；`owner` 必須獨立依直接既有 tag 或人工 review 決定，不得因 cost center 自動推定。
+
+### IDTT 已確認統一 RG profile
+- `IDTT-AIVerse_Dev / fet-rag-bst-rg`：所有非系統資源使用 `owner=Ralph Liang (527714)`、`cost_center=3101`。
+- `IDTT-AIVerse_Dev / fet-aifndry-bst-rg`：所有非系統資源使用 `owner=John Zeng (598493)`、`cost_center=3901`。
+- `IDTT-AIVerse_Dev / fet-ai-km-dev-rg`：所有非系統資源使用 `owner=Lili Huang (598520)`；既有 `cost_center`、`Purpose` 與 `EnvType` 維持各資源原值。
+- `IDTT-AIVerse_Dev / ppenv-3901-dev-rg` 與 `ppenv-3901-prod-rg`：所有可標記的非系統資源使用 `owner=Ralph Liang (527714)`、`cost_center=3101`。已連結 environment 的 `Microsoft.PowerPlatform/enterprisePolicies` 例外。
+- `IDTT-AIVerse_Prod / fet-ebu-aiverse-prod` 與 `fet-ebu-mess-prod`：所有非系統資源使用 `owner=Jeff Yu (597061)`、`cost_center=3901`。
+- `IDTT-AIVerse_Prod / fet-idtt-info-out-rg`：所有非系統資源使用 `owner=Lili Huang (598520)`、`cost_center=3901`。
+- `IDTT-AgentAssistant / fet-process-prod-rg`：所有非系統資源使用 `owner=Jerry Lin (525241)`、`cost_center=7201`。
+- `IDTT-AIVerse_Dev / fet-aigw-dev`：所有非系統資源使用 `owner=Kevin Hung (527501)`、`cost_center=3501`、`Purpose=IT_llm`、`EnvType=Develop`。
+- `IDTT-AgentAssistant / fet-aigw-prod`：所有非系統資源使用 `owner=Kevin Hung (527501)`、`cost_center=3501`、`Purpose=IT_llm`、`EnvType=Production`。
 
 ### Databricks Workspace 不加 Purpose
 - **`Microsoft.Databricks/workspaces` 一律不補 `Purpose` tag**。
@@ -228,6 +256,7 @@ python scripts/refresh_current_tags.py --rg <rg-name>
 - **hooks 裡使用 jq**：Windows 上 jq 輸出會帶 `\r`（carriage return），pipe 取檔案路徑時需加 `| tr -d '\r'`，否則 Python 等工具會收到帶 `\r` 的路徑而報錯。
 - **`uv run` 被執行中的 server 鎖住**：MCP server 執行中時，`uv run python scripts/xxx.py` 會失敗（`error: failed to remove file azure-cost-mcp.exe: 程序無法存取檔案`），因為 uv 試圖更新鎖定中的 `.exe`。**Fix**：改用 `python scripts/xxx.py` 直接呼叫，不透過 `uv run`。
 - **部分 Azure 子資源不支援 tag PATCH**：`Microsoft.Automation/automationAccounts/runbooks` 中某些 runbook 執行 `az tag update` 會回傳 `ProviderError: The requested resource does not support http method 'PATCH'`。這是平台限制，非腳本 bug；`apply_rg_tags.py` 已有 `[error]` 繼續執行的機制，此類資源直接略過即可。
+- **已連結 environment 的 Enterprise Policy 不可更新 tag**：`Microsoft.PowerPlatform/enterprisePolicies` 的 generic tag PATCH 會回傳 `EnterprisePolicyUpdateNotAllowed`。不可為補 tag 解除 environment 連結；維持排除於 tag gap audit，並記錄為平台例外。
 - **Resource ID 含括號時 subprocess list form 會失敗**：`az.cmd` 在 Windows 上透過 cmd.exe 執行，括號 `(` `)` 是 CMD 的群組字元。呼叫 `az` 時若 resource ID 含括號（如 `ContainerInsights(xxx)`、`SecurityCenterFree(xxx)`），用 list form 傳入參數，cmd.exe 仍會解析括號導致 "不應有 --operation / --query" 等錯誤。**Fix**：改用 `shell=True` 並以雙引號包裹 resource ID 與含特殊字元的 tag 值：
   ```python
   tag_str = ' '.join(f'"{k}={v}"' for k, v in to_add.items())

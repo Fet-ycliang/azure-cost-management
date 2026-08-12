@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -50,18 +50,18 @@ class Settings(BaseSettings):
     )
     azure_tenant_id: str | None = Field(
         default=None,
-        validation_alias="AZURE_TENANT_ID",
-        description="Service Principal 使用的 tenant ID。",
+        validation_alias=AliasChoices("AZURE_TENANT_ID", "AZURE_SP_TENANT_ID"),
+        description="Azure Service Principal 使用的 tenant ID。",
     )
     azure_client_id: str | None = Field(
         default=None,
-        validation_alias="AZURE_CLIENT_ID",
-        description="Service Principal 或 User Assigned Managed Identity 的 client ID。",
+        validation_alias=AliasChoices("AZURE_CLIENT_ID", "AZURE_SP_CLIENT_ID"),
+        description="Azure Service Principal 或 User Assigned Managed Identity 的 client ID。",
     )
     azure_client_secret: str | None = Field(
         default=None,
-        validation_alias="AZURE_CLIENT_SECRET",
-        description="Service Principal 使用的 client secret。",
+        validation_alias=AliasChoices("AZURE_CLIENT_SECRET", "AZURE_SP_CLIENT_SECRET"),
+        description="Azure Service Principal 使用的 client secret。",
     )
     azure_managed_identity_client_id: str | None = Field(
         default=None,

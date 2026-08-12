@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""移除小寫 tag key（如 cost_center），前提是資源已有對應大寫版本（如 CostCenter）。
+"""移除 legacy tag key（如 CostCenter），前提是資源已有對應標準 key（如 cost_center）。
 
 用法：
     python scripts/remove_lowercase_tags.py --rg apim-app-bst-rg [--dry-run]
@@ -7,8 +7,8 @@
 選項：
     --rg NAME           Resource Group 名稱（必填）
     --desired-dir PATH  desired JSON 目錄（預設：.cache/tag-inventory/desired）
-    --remove-keys K,... 要移除的小寫 key，逗號分隔（預設：cost_center）
-    --require-keys K,.. 移除前需確認存在的大寫 key，逗號分隔（預設：CostCenter）
+    --remove-keys K,... 要移除的 legacy key，逗號分隔（預設：CostCenter）
+    --require-keys K,.. 移除前需確認存在的標準 key，逗號分隔（預設：cost_center）
     --dry-run           只印出指令，不實際執行
 """
 from __future__ import annotations
@@ -27,8 +27,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--rg", required=True)
     parser.add_argument("--desired-dir", default=".cache/tag-inventory/desired")
-    parser.add_argument("--remove-keys", default="cost_center", help="要移除的 tag key，逗號分隔")
-    parser.add_argument("--require-keys", default="CostCenter", help="移除前需確認存在的 tag key，逗號分隔")
+    parser.add_argument("--remove-keys", default="CostCenter", help="要移除的 tag key，逗號分隔")
+    parser.add_argument("--require-keys", default="cost_center", help="移除前需確認存在的 tag key，逗號分隔")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
