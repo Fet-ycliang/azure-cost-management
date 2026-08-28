@@ -145,6 +145,12 @@
 - **`dict(obj)` 是淺層複製**：module-level fixture dict 若含巢狀 dict（如 `desired_tags`），`dict(ENTRY)` 後 nested dict 仍指向同一物件。test A 若修改 `entry["desired_tags"]`，會靜默污染後續 tests（症狀：某 test 單跑 pass，全套跑 fail，且錯誤值來自另一個 test 的副作用）。
 - **Fix**：對含有巢狀 mutable 值的 fixture，一律用 `copy.deepcopy(ENTRY)` 而非 `dict(ENTRY)`。
 
+### 前端 API 回應的清單欄位契約
+- **React 不可直接對 API 回應的清單欄位讀取 `.length`**：即使 TypeScript 型別宣告為必填，前後端版本不同、部分序列化或舊快取都可能使欄位成為 `undefined` 或 `null`。例如 Migration Dashboard 的 `matched_space_ids.length` 曾造成 Runtime `TypeError`。
+- **在 API 邊界正規化，render 時仍採安全 fallback**：優先將外部回應轉成穩定的 view model；元件需要讀取清單長度時使用 `(result?.matched_space_ids ?? []).length`，不可假設欄位一定存在。
+- **後端回應 model 的清單欄位必須預設為空陣列**：Pydantic 使用 `Field(default_factory=list)`，不得在「無結果」時回傳 `None` 或省略 key。若需要支援舊版回應，前端 interface 應暫時標記為 optional，待雙方部署完成後再收緊型別。
+- **回歸測試需覆蓋缺欄位、`null` 與空陣列**：驗證畫面正常顯示空狀態且不拋出例外，不只測試有匹配資料的成功路徑。
+
 ## Tag 治理踩坑規則（Epic 5 批次補標後更新）
 
 ### desired JSON 保護
